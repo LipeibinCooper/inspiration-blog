@@ -1,58 +1,109 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
-import {
-  getInspirations as getInspirationsApi,
-  createInspiration as createInspirationApi
-} from "@/api/inspiration";
-import type { Inspiration, CreateInspirationDto } from "@/types/inspiration";
+import { ref, computed } from "vue";
+import type { Inspiration, CreateInspirationDto, Comment } from "@/types/inspiration";
+import { useAuthStore } from "./useAuthStore";
+
+interface InspirationState {
+  allInspirations: Inspiration[];
+  allComments: Comment[];
+}
 
 export const useInspirationStore = defineStore("inspiration", () => {
-  const myInspirations = ref<Inspiration[]>([]);
-  const recommendedInspirations = ref<Inspiration[]>([]);
+  const authStore = useAuthStore();
+  const allInspirations = ref<Inspiration[]>([
+    {
+      id: 1,
+      title: "Vue 3 组合式 API",
+      content: "Vue 3 的组合式 API 提供了更好的代码组织方式...",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: 1, // admin 的笔记
+      isPublic: true,
+      likes: 0,
+      comments: 0,
+      collections: 0
+    },
+    {
+      id: 2,
+      title: "TypeScript 类型体操",
+      content: "TypeScript 的类型系统非常强大...",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: 2, // test 的笔记
+      isPublic: true,
+      likes: 0,
+      comments: 0,
+      collections: 0
+    }
+  ]);
 
-  // 获取灵感列表
-  const fetchInspirations = async () => {
-    try {
-      const response = await getInspirationsApi();
-      const inspirations = response.data.map((item) => ({
-        id: item.id,
-        title: item.title,
-        content: item.content,
-        createdAt: item.createdAt,
-        updatedAt: item.createdAt,
-        userId: 1
-      }));
+  // 添加评论存储
+  const allComments = ref<Comment[]>([]);
 
-      myInspirations.value = inspirations.slice(0, 5);
-      recommendedInspirations.value = inspirations.slice(5);
-    } catch (error) {
-      console.error("获取灵感失败", error);
+  // 当前用户的灵感笔记（只在左侧列表显示）
+  const myInspirations = computed(() => 
+    allInspirations.value.filter(note => note.userId === authStore.userInfo?.id)
+  );
+
+  // 所有公开的灵感笔记（包括自己的）
+  const recommendedInspirations = computed(() => 
+    allInspirations.value.filter(note => note.isPublic)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  );
+
+  const activeNoteId = ref<number | null>(null);
+
+  // 添加新灵感
+  const addInspiration = (data: CreateInspirationDto) => {
+    const newInspiration: Inspiration = {
+      id: Date.now(),
+      ...data,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: authStore.userInfo?.id || 1,
+      likes: 0,
+      comments: 0,
+      collections: 0
+    };
+    
+    allInspirations.value.unshift(newInspiration);
+  };
+
+  // 设置当前选中的灵感
+  const setActiveNoteId = (id: number) => {
+    activeNoteId.value = id;
+  };
+
+  // 更新灵感的互动计数
+  const updateInspirationStats = (inspirationId: number, type: 'likes' | 'collections' | 'comments', isAdd: boolean) => {
+    const inspiration = allInspirations.value.find(note => note.id === inspirationId);
+    if (inspiration) {
+      inspiration[type] = inspiration[type] + (isAdd ? 1 : -1);
     }
   };
 
-  // 创建新灵感
-  const createInspiration = async (data: CreateInspirationDto) => {
-    try {
-      const response = await createInspirationApi(data);
-      const newInspiration: Inspiration = {
-        id: response.data.id,
-        title: response.data.title,
-        content: response.data.content,
-        createdAt: response.data.createdAt,
-        updatedAt: response.data.createdAt,
-        userId: 1
-      };
+  // 添加评论
+  const addComment = (comment: Comment) => {
+    allComments.value.unshift(comment);
+    updateInspirationStats(comment.inspirationId, 'comments', true);
+  };
 
-      myInspirations.value.unshift(newInspiration);
-    } catch (error) {
-      console.error("创建灵感失败", error);
-    }
+  // 获取灵感的评论
+  const getInspirationComments = (inspirationId: number) => {
+    return allComments.value.filter(comment => comment.inspirationId === inspirationId);
   };
 
   return {
     myInspirations,
     recommendedInspirations,
-    fetchInspirations,
-    createInspiration
+    activeNoteId,
+    addInspiration,
+    setActiveNoteId,
+    allInspirations,
+    updateInspirationStats,
+    addComment,
+    getInspirationComments
   };
+}, {
+  persist: true // 简化持久化配置
 });

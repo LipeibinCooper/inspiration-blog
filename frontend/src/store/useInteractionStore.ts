@@ -1,0 +1,126 @@
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { Comment, UserInteraction, Inspiration } from "@/types/inspiration";
+import { useAuthStore } from "./useAuthStore";
+import { useInspirationStore } from "./useInspirationStore";
+
+interface InteractionState {
+  userInteractions: Record<number, UserInteraction>;
+}
+
+export const useInteractionStore = defineStore("interaction", () => {
+  const authStore = useAuthStore();
+  const inspirationStore = useInspirationStore();
+
+  // 用户互动记录
+  const userInteractions = ref<Record<number, UserInteraction>>({});
+
+  // 获取当前用户的互动记录
+  const currentUserInteraction = computed(() => {
+    const userId = authStore.userInfo?.id;
+    if (!userId) return null;
+    
+    // 如果用户互动记录不存在，则初始化
+    if (!userInteractions.value[userId]) {
+      userInteractions.value[userId] = {
+        likes: [],
+        collections: [],
+        comments: []
+      };
+    }
+    
+    return userInteractions.value[userId];
+  });
+
+  // 点赞灵感
+  const toggleLike = (inspirationId: number) => {
+    if (!currentUserInteraction.value) return;
+    
+    const index = currentUserInteraction.value.likes.indexOf(inspirationId);
+    const isAdd = index === -1;
+    
+    if (isAdd) {
+      currentUserInteraction.value.likes.push(inspirationId);
+    } else {
+      currentUserInteraction.value.likes.splice(index, 1);
+    }
+
+    inspirationStore.updateInspirationStats(inspirationId, 'likes', isAdd);
+  };
+
+  // 收藏灵感
+  const toggleCollection = (inspirationId: number) => {
+    if (!currentUserInteraction.value) return;
+    
+    const index = currentUserInteraction.value.collections.indexOf(inspirationId);
+    const isAdd = index === -1;
+    
+    if (isAdd) {
+      currentUserInteraction.value.collections.push(inspirationId);
+    } else {
+      currentUserInteraction.value.collections.splice(index, 1);
+    }
+
+    inspirationStore.updateInspirationStats(inspirationId, 'collections', isAdd);
+  };
+
+  // 添加评论
+  const addComment = async (inspirationId: number, content: string) => {
+    if (!currentUserInteraction.value || !authStore.userInfo) return;
+
+    const inspiration = inspirationStore.allInspirations.find(
+      (note: Inspiration) => note.id === inspirationId
+    );
+
+    const comment: Comment = {
+      id: Date.now(),
+      content,
+      createdAt: new Date().toISOString(),
+      userId: authStore.userInfo.id,
+      username: authStore.userInfo.username,
+      inspirationId,
+      inspirationTitle: inspiration?.title || ""
+    };
+
+    // 添加到全局评论列表
+    inspirationStore.addComment(comment);
+    // 添加到用户的评论记录
+    currentUserInteraction.value.comments.push(comment);
+  };
+
+  // 获取用户点赞的灵感
+  const likedInspirations = computed(() => 
+    currentUserInteraction.value
+      ? inspirationStore.allInspirations.filter(
+          (note: Inspiration) => currentUserInteraction.value?.likes.includes(note.id)
+        )
+      : []
+  );
+
+  // 获取用户收藏的灵感
+  const collectedInspirations = computed(() => 
+    currentUserInteraction.value
+      ? inspirationStore.allInspirations.filter(
+          (note: Inspiration) => currentUserInteraction.value?.collections.includes(note.id)
+        )
+      : []
+  );
+
+  // 获取用户的评论
+  const userComments = computed(() => 
+    currentUserInteraction.value?.comments || []
+  );
+
+  return {
+    toggleLike,
+    toggleCollection,
+    addComment,
+    likedInspirations,
+    collectedInspirations,
+    userComments,
+    currentUserInteraction,
+    userInteractions
+  };
+}, {
+  persist: true
+}); 
