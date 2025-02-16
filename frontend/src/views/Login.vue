@@ -88,7 +88,6 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import type { Values, ValidateOption } from 'async-validator';
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
@@ -191,7 +190,8 @@ export default defineComponent({
           try {
             await authStore.register({
               username: registerForm.value.username,
-              password: registerForm.value.password
+              password: registerForm.value.password,
+              confirmPassword: registerForm.value.confirmPassword
             });
             ElMessage.success("注册成功，请登录");
             activeTab.value = 'login';

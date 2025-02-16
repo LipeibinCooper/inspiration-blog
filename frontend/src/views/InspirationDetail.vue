@@ -1,274 +1,205 @@
 <template>
   <div class="inspiration-detail">
-    <el-card class="detail-card">
-      <!-- 标题区域 -->
-      <template #header>
-        <div class="card-header">
-          <h2>{{ inspiration?.title }}</h2>
-          <div class="header-actions">
-            <el-tag v-if="!inspiration?.isPublic" type="info">私密</el-tag>
-            <el-button 
-              type="primary" 
-              circle
-              @click="handleCollection"
-            >
-              <el-icon>
-                <component :is="isCollected ? 'StarFilled' : 'Star'" />
-              </el-icon>
-            </el-button>
-          </div>
-        </div>
-      </template>
+    <div class="detail-header">
+      <el-button @click="router.back()" :icon="ArrowLeft">返回</el-button>
+      <h2>{{ inspiration?.title }}</h2>
+    </div>
+    
+    <div class="detail-content">
+      <p>{{ inspiration?.content }}</p>
+    </div>
 
-      <!-- 内容区域 -->
-      <div class="content">
-        <p>{{ inspiration?.content }}</p>
+    <div class="detail-footer">
+      <div class="time-info">
+        创建时间: {{ formatTime(inspiration?.createdAt) }}
+        <template v-if="inspiration?.updatedAt">
+          | 更新时间: {{ formatTime(inspiration?.updatedAt) }}
+        </template>
       </div>
 
-      <!-- 互动区域 -->
-      <div class="interaction-area">
-        <div class="stats">
-          <el-button 
-            :type="isLiked ? 'primary' : 'default'"
-            @click="handleLike"
-          >
-            <el-icon><Pointer /></el-icon>
-            {{ inspiration?.likes || 0 }}
-          </el-button>
-          <el-button type="default">
-            <el-icon><ChatRound /></el-icon>
-            {{ inspiration?.comments || 0 }}
-          </el-button>
-          <el-button 
-            :type="isCollected ? 'primary' : 'default'"
-            @click="handleCollection"
-          >
-            <el-icon><Star /></el-icon>
-            {{ inspiration?.collections || 0 }}
-          </el-button>
-        </div>
+      <!-- 互动按钮区 -->
+      <div class="interaction-buttons">
+        <el-button 
+          :type="isLiked ? 'primary' : 'default'"
+          @click="handleLike"
+        >
+          <el-icon><Pointer /></el-icon>
+          点赞 {{ inspiration?.likes || 0 }}
+        </el-button>
+        <el-button 
+          :type="isCollected ? 'primary' : 'default'"
+          @click="handleCollection"
+        >
+          <el-icon><Star /></el-icon>
+          收藏 {{ inspiration?.collections || 0 }}
+        </el-button>
       </div>
+    </div>
 
-      <!-- 评论区域 -->
-      <div class="comment-section">
-        <h3>评论</h3>
-        <!-- 评论输入框 -->
-        <div class="comment-input">
-          <el-input
-            v-model="newComment"
-            type="textarea"
-            :rows="2"
-            placeholder="写下你的评论..."
-          />
-          <el-button 
-            type="primary" 
-            :loading="submitting"
-            @click="handleComment"
-          >
-            发表评论
-          </el-button>
-        </div>
-
-        <!-- 评论列表 -->
-        <div class="comment-list">
-          <el-timeline>
-            <el-timeline-item
-              v-for="comment in comments"
-              :key="comment.id"
-              :timestamp="formatDate(comment.createdAt)"
-            >
-              <div class="comment-item">
-                <div class="comment-header">
-                  <el-avatar :size="24">{{ comment.username.charAt(0) }}</el-avatar>
-                  <span class="username">{{ comment.username }}</span>
-                </div>
-                <p class="comment-content">{{ comment.content }}</p>
-              </div>
-            </el-timeline-item>
-          </el-timeline>
-        </div>
+    <!-- 评论区 -->
+    <div class="comments-section">
+      <h3>评论区</h3>
+      <div class="comment-input">
+        <el-input
+          v-model="newComment"
+          type="textarea"
+          :rows="2"
+          placeholder="写下你的评论..."
+        />
+        <el-button 
+          type="primary" 
+          :loading="submitting"
+          @click="handleComment"
+        >
+          发表评论
+        </el-button>
       </div>
-    </el-card>
+    </div>
+
+    <comment-list 
+      v-if="inspiration"
+      :inspiration-id="inspiration.id"
+    />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed } from "vue";
-import { useRoute } from "vue-router";
-import { useInspirationStore } from "@/store/useInspirationStore";
-import { useInteractionStore } from "@/store/useInteractionStore";
-import { Star, StarFilled, Pointer, ChatRound } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
-import type { Comment } from "@/types/inspiration";
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { ArrowLeft, Star, Pointer } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { useInspirationStore } from '@/store/useInspirationStore';
+import { useInteractionStore } from '@/store/useInteractionStore';
+import CommentList from '@/components/CommentList.vue';
 
-export default defineComponent({
-  name: "InspirationDetail",
-  components: {
-    Star,
-    StarFilled,
-    Pointer,
-    ChatRound
-  },
-  setup() {
-    const route = useRoute();
-    const inspirationStore = useInspirationStore();
-    const interactionStore = useInteractionStore();
-    const inspirationId = Number(route.params.id);
+const route = useRoute();
+const router = useRouter();
+const inspirationStore = useInspirationStore();
+const interactionStore = useInteractionStore();
 
-    const newComment = ref("");
-    const submitting = ref(false);
+const newComment = ref('');
+const submitting = ref(false);
 
-    // 获取当前灵感
-    const inspiration = computed(() => 
-      inspirationStore.allInspirations.find(note => note.id === inspirationId)
-    );
-
-    // 获取评论列表
-    const comments = computed(() => 
-      inspirationStore.getInspirationComments(inspirationId)
-    );
-
-    // 检查当前用户的互动状态
-    const isLiked = computed(() => {
-      const userInteraction = interactionStore.currentUserInteraction;
-      if (!userInteraction) return false;
-      return userInteraction.likes.includes(inspirationId);
-    });
-
-    const isCollected = computed(() => {
-      const userInteraction = interactionStore.currentUserInteraction;
-      if (!userInteraction) return false;
-      return userInteraction.collections.includes(inspirationId);
-    });
-
-    // 处理点赞
-    const handleLike = () => {
-      interactionStore.toggleLike(inspirationId);
-    };
-
-    // 处理收藏
-    const handleCollection = () => {
-      interactionStore.toggleCollection(inspirationId);
-    };
-
-    // 处理评论
-    const handleComment = async () => {
-      if (!newComment.value.trim()) {
-        ElMessage.warning("请输入评论内容");
-        return;
-      }
-
-      submitting.value = true;
-      try {
-        await interactionStore.addComment(inspirationId, newComment.value);
-        newComment.value = "";
-        ElMessage.success("评论成功");
-      } catch (error) {
-        ElMessage.error("评论失败");
-      } finally {
-        submitting.value = false;
-      }
-    };
-
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return date.toLocaleString();
-    };
-
-    return {
-      inspiration,
-      comments,
-      newComment,
-      submitting,
-      isLiked,
-      isCollected,
-      handleLike,
-      handleCollection,
-      handleComment,
-      formatDate
-    };
-  }
+// 获取当前灵感
+const inspiration = computed(() => {
+  const id = Number(route.params.id);
+  return inspirationStore.allInspirations.find(note => note.id === id);
 });
+
+// 检查当前用户是否已点赞
+const isLiked = computed(() => {
+  return interactionStore.currentUserInteraction?.likes.includes(Number(route.params.id)) || false;
+});
+
+// 检查当前用户是否已收藏
+const isCollected = computed(() => {
+  return interactionStore.currentUserInteraction?.collections.includes(Number(route.params.id)) || false;
+});
+
+// 处理点赞
+const handleLike = () => {
+  if (!inspiration.value) return;
+  interactionStore.toggleLike(inspiration.value.id);
+};
+
+// 处理收藏
+const handleCollection = () => {
+  if (!inspiration.value) return;
+  interactionStore.toggleCollection(inspiration.value.id);
+};
+
+// 处理评论
+const handleComment = async () => {
+  if (!newComment.value.trim() || !inspiration.value) {
+    ElMessage.warning('请输入评论内容');
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    await interactionStore.addComment(inspiration.value.id, newComment.value.trim());
+    newComment.value = '';
+    ElMessage.success('评论成功');
+  } catch (error) {
+    console.error('评论失败:', error);
+    ElMessage.error(error instanceof Error ? error.message : '评论失败');
+  } finally {
+    submitting.value = false;
+  }
+};
+
+const formatTime = (time?: string) => {
+  if (!time) return '';
+  return new Date(time).toLocaleString();
+};
 </script>
 
 <style scoped>
 .inspiration-detail {
+  padding: 20px;
   max-width: 800px;
-  margin: 20px auto;
-  padding: 0 20px;
+  margin: 0 auto;
 }
 
-.detail-card {
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 20px;
 }
 
-.card-header {
+.detail-content {
+  margin: 20px 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.detail-footer {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.card-header h2 {
-  margin: 0;
+.time-info {
+  color: #666;
+  font-size: 14px;
 }
 
-.header-actions {
+.interaction-buttons {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  gap: 12px;
 }
 
-.content {
-  margin: 20px 0;
-  line-height: 1.6;
-}
-
-.interaction-area {
-  margin: 20px 0;
-  padding: 20px 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-}
-
-.stats {
-  display: flex;
-  gap: 20px;
-}
-
-.comment-section {
+.comments-section {
   margin-top: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.comments-section h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
 }
 
 .comment-input {
-  margin: 20px 0;
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.comment-list {
-  margin-top: 20px;
-}
-
-.comment-item {
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 4px;
-}
-
-.comment-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.username {
-  font-weight: bold;
-}
-
-.comment-content {
-  margin: 0;
-  color: #666;
+.comment-input .el-button {
+  align-self: flex-end;
 }
 </style>

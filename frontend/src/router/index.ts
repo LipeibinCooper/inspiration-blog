@@ -22,9 +22,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
-    path: "/profile",
+    path: "/profile/:id?",
     name: "profile",
     component: () => import("../views/ProfileView.vue"),
+    props: true,
     meta: { requiresAuth: true }
   }
 ];

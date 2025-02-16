@@ -2,9 +2,15 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { User, LoginForm, RegisterForm } from "@/types/inspiration";
 
+interface ApiUser {
+  id: number;
+  username: string;
+  email: string;
+}
+
 export const useAuthStore = defineStore("auth", () => {
   const userInfo = ref<User | null>(null);
-  const token = ref<string | null>(null);
+  const token = ref<string>("");
 
   // 存储注册用户的信息
   const registeredUsers = ref([
@@ -22,29 +28,25 @@ export const useAuthStore = defineStore("auth", () => {
     }
   ]);
 
-  const login = async (loginForm: LoginForm) => {
-    // 查找注册用户
-    const user = registeredUsers.value.find(
-      u => u.username === loginForm.username && u.password === loginForm.password
-    );
+  const login = async (form: LoginForm) => {
+    // 模拟登录
+    const user: ApiUser = {
+      id: form.username === "admin" ? 1 : 2,
+      username: form.username,
+      email: `${form.username}@example.com`
+    };
 
-    if (user) {
-      userInfo.value = {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      };
-      token.value = "mock_token_" + user.id;
-      localStorage.setItem("token", token.value);
-      localStorage.setItem("user", JSON.stringify(userInfo.value));
-    } else {
-      throw new Error("用户名或密码错误");
-    }
+    userInfo.value = {
+      id: user.id,
+      username: user.username
+    };
+    token.value = "mock_token_" + user.id;
+    localStorage.setItem("token", token.value);
   };
 
   const logout = () => {
     userInfo.value = null;
-    token.value = null;
+    token.value = "";
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   };
@@ -81,6 +83,11 @@ export const useAuthStore = defineStore("auth", () => {
     return Promise.resolve();
   };
 
+  // 根据 ID 获取用户信息
+  const getUserById = (id: number) => {
+    return registeredUsers.value.find(user => user.id === id) || null;
+  };
+
   return {
     userInfo,
     token,
@@ -88,6 +95,7 @@ export const useAuthStore = defineStore("auth", () => {
     logout,
     isLoggedIn,
     initAuth,
-    register
+    register,
+    getUserById
   };
 }); 

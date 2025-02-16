@@ -1,12 +1,8 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import type { Comment, UserInteraction, Inspiration } from "@/types/inspiration";
 import { useAuthStore } from "./useAuthStore";
 import { useInspirationStore } from "./useInspirationStore";
-
-interface InteractionState {
-  userInteractions: Record<number, UserInteraction>;
-}
 
 export const useInteractionStore = defineStore("interaction", () => {
   const authStore = useAuthStore();
@@ -16,21 +12,35 @@ export const useInteractionStore = defineStore("interaction", () => {
   const userInteractions = ref<Record<number, UserInteraction>>({});
 
   // 获取当前用户的互动记录
-  const currentUserInteraction = computed(() => {
-    const userId = authStore.userInfo?.id;
-    if (!userId) return null;
-    
-    // 如果用户互动记录不存在，则初始化
-    if (!userInteractions.value[userId]) {
-      userInteractions.value[userId] = {
+  const currentUserInteraction = ref<UserInteraction>({
+    likes: [],
+    eventLikes: [],
+    collections: [],
+    comments: []
+  });
+
+  // 添加 watcher 来监听用户变化
+  watch(() => authStore.userInfo?.id, (newUserId) => {
+    if (newUserId) {
+      // 如果用户互动记录不存在，则初始化
+      if (!userInteractions.value[newUserId]) {
+        userInteractions.value[newUserId] = {
+          likes: [],
+          eventLikes: [],
+          collections: [],
+          comments: []
+        };
+      }
+      currentUserInteraction.value = userInteractions.value[newUserId];
+    } else {
+      currentUserInteraction.value = {
         likes: [],
+        eventLikes: [],
         collections: [],
         comments: []
       };
     }
-    
-    return userInteractions.value[userId];
-  });
+  }, { immediate: true });
 
   // 点赞灵感
   const toggleLike = (inspirationId: number) => {
@@ -66,26 +76,25 @@ export const useInteractionStore = defineStore("interaction", () => {
 
   // 添加评论
   const addComment = async (inspirationId: number, content: string) => {
-    if (!currentUserInteraction.value || !authStore.userInfo) return;
+    const authUser = authStore.userInfo;
+    if (!authUser) throw new Error('请先登录');
 
-    const inspiration = inspirationStore.allInspirations.find(
-      (note: Inspiration) => note.id === inspirationId
-    );
-
-    const comment: Comment = {
+    const newComment: Comment = {
       id: Date.now(),
       content,
       createdAt: new Date().toISOString(),
-      userId: authStore.userInfo.id,
-      username: authStore.userInfo.username,
-      inspirationId,
-      inspirationTitle: inspiration?.title || ""
+      userId: authUser.id,
+      username: authUser.username,
+      inspirationId
     };
 
-    // 添加到全局评论列表
-    inspirationStore.addComment(comment);
-    // 添加到用户的评论记录
-    currentUserInteraction.value.comments.push(comment);
+    // 添加到 InspirationStore 的评论列表中
+    inspirationStore.addComment(newComment);
+
+    // 添加到当前用户的评论列表中
+    currentUserInteraction.value.comments.push(newComment);
+
+    return newComment;
   };
 
   // 获取用户点赞的灵感

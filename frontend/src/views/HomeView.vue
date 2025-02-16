@@ -19,8 +19,12 @@
     <main class="main-content">
       <header class="top-bar">
         <h1>发现灵感</h1>
-        <el-button type="primary" round @click="showCreateDialog = true">
-          创建灵感
+        <el-button 
+          type="success" 
+          @click="showCreateDialog"
+        >
+          <el-icon><CirclePlus /></el-icon>
+          创建灵感树
         </el-button>
       </header>
 
@@ -43,7 +47,14 @@
     </main>
 
     <!-- 创建灵感弹窗 -->
-    <el-dialog v-model="showCreateDialog" title="创建新灵感">
+    <el-dialog
+      v-model="dialogVisible"
+      title="种下一颗灵感种子"
+      width="50%"
+    >
+      <div class="dialog-hint">
+        每个伟大的想法都始于一颗种子...
+      </div>
       <el-form 
         :model="newInspiration"
         :rules="rules"
@@ -61,7 +72,7 @@
             v-model="newInspiration.content" 
             type="textarea" 
             rows="4"
-            placeholder="请输入内容"
+            placeholder="写下你的第一个想法..."
           ></el-input>
         </el-form-item>
         <el-form-item>
@@ -73,8 +84,11 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" @click="createNewInspiration">发布</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="success" @click="createNewInspiration">
+          <el-icon><CirclePlus /></el-icon>
+          创建灵感树
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -86,14 +100,18 @@ import { useRouter } from "vue-router";
 import { useInspirationStore } from "@/store/useInspirationStore";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
+import { CirclePlus } from '@element-plus/icons-vue';
 
 export default defineComponent({
   name: "HomeView",
+  components: {
+    CirclePlus
+  },
   setup() {
     const router = useRouter();
     const inspirationStore = useInspirationStore();
-    const showCreateDialog = ref(false);
     const formRef = ref<FormInstance>();
+    const dialogVisible = ref(false);
 
     const newInspiration = ref({
       title: "",
@@ -111,33 +129,45 @@ export default defineComponent({
       ]
     };
 
-    // 跳转到详情页
-    const goToDetail = (id: number) => {
-      router.push(`/inspiration/${id}`);
+    // 显示创建对话框
+    const showCreateDialog = () => {
+      dialogVisible.value = true;
     };
 
     // 创建新灵感
     const createNewInspiration = async () => {
       if (!formRef.value) return;
       
-      await formRef.value.validate((valid) => {
+      await formRef.value.validate(async (valid) => {
         if (valid) {
-          inspirationStore.addInspiration(newInspiration.value);
-          showCreateDialog.value = false;
-          newInspiration.value = { title: "", content: "", isPublic: true };
-          ElMessage.success("灵感创建成功");
+          try {
+            const newId = await inspirationStore.addInspiration(newInspiration.value);
+            dialogVisible.value = false;
+            newInspiration.value = { title: "", content: "", isPublic: true };
+            ElMessage.success("灵感创建成功");
+            // 创建成功后跳转到详情页
+            router.push(`/inspiration/${newId}`);
+          } catch (error) {
+            ElMessage.error("创建失败");
+          }
         }
       });
     };
 
+    // 跳转到详情页
+    const goToDetail = (id: number) => {
+      router.push(`/inspiration/${id}`);
+    };
+
     return {
       inspirationStore,
-      showCreateDialog,
+      dialogVisible,
       newInspiration,
       createNewInspiration,
-      goToDetail,
+      showCreateDialog,
       formRef,
-      rules
+      rules,
+      goToDetail
     };
   }
 });
@@ -218,5 +248,12 @@ export default defineComponent({
 
 .el-tag {
   margin-left: auto;
+}
+
+.dialog-hint {
+  color: #67c23a;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 14px;
 }
 </style>

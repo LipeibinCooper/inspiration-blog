@@ -18,5 +18,11 @@ module.exports = {
 
     // 关闭 ESLint 的 Prettier 格式检查，避免因格式问题导致编译失败
     "prettier/prettier": "off"
+  },
+  globals: {
+    defineProps: 'readonly',
+    defineEmits: 'readonly',
+    defineExpose: 'readonly',
+    withDefaults: 'readonly'
   }
 };

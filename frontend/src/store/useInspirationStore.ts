@@ -2,11 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { Inspiration, CreateInspirationDto, Comment } from "@/types/inspiration";
 import { useAuthStore } from "./useAuthStore";
-
-interface InspirationState {
-  allInspirations: Inspiration[];
-  allComments: Comment[];
-}
+import { api } from "@/api";
 
 export const useInspirationStore = defineStore("inspiration", () => {
   const authStore = useAuthStore();
@@ -37,8 +33,25 @@ export const useInspirationStore = defineStore("inspiration", () => {
     }
   ]);
 
-  // 添加评论存储
-  const allComments = ref<Comment[]>([]);
+  // 添加评论存储的初始数据
+  const allComments = ref<Comment[]>([
+    {
+      id: 1,
+      content: "这是一条测试评论",
+      createdAt: new Date().toISOString(),
+      userId: 1,
+      username: "admin",
+      inspirationId: 1
+    },
+    {
+      id: 2,
+      content: "Vue 3 确实很棒！",
+      createdAt: new Date().toISOString(),
+      userId: 2,
+      username: "test",
+      inspirationId: 1
+    }
+  ]);
 
   // 当前用户的灵感笔记（只在左侧列表显示）
   const myInspirations = computed(() => 
@@ -54,19 +67,22 @@ export const useInspirationStore = defineStore("inspiration", () => {
   const activeNoteId = ref<number | null>(null);
 
   // 添加新灵感
-  const addInspiration = (data: CreateInspirationDto) => {
+  const addInspiration = async (inspiration: CreateInspirationDto): Promise<number> => {
     const newInspiration: Inspiration = {
       id: Date.now(),
-      ...data,
+      title: inspiration.title,
+      content: inspiration.content,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      userId: authStore.userInfo?.id || 1,
+      userId: authStore.userInfo?.id || 0,
+      isPublic: inspiration.isPublic,
       likes: 0,
       comments: 0,
       collections: 0
     };
-    
+
     allInspirations.value.unshift(newInspiration);
+    return newInspiration.id;
   };
 
   // 设置当前选中的灵感
@@ -84,13 +100,22 @@ export const useInspirationStore = defineStore("inspiration", () => {
 
   // 添加评论
   const addComment = (comment: Comment) => {
+    console.log('Adding comment:', comment);
     allComments.value.unshift(comment);
     updateInspirationStats(comment.inspirationId, 'comments', true);
   };
 
   // 获取灵感的评论
   const getInspirationComments = (inspirationId: number) => {
-    return allComments.value.filter(comment => comment.inspirationId === inspirationId);
+    console.log('Getting comments for inspiration:', inspirationId);
+    const comments = allComments.value.filter(comment => comment.inspirationId === inspirationId);
+    console.log('Found comments:', comments);
+    return comments;
+  };
+
+  // 获取用户的所有评论
+  const getUserComments = (userId: number) => {
+    return allComments.value.filter(comment => comment.userId === userId);
   };
 
   return {
@@ -102,7 +127,9 @@ export const useInspirationStore = defineStore("inspiration", () => {
     allInspirations,
     updateInspirationStats,
     addComment,
-    getInspirationComments
+    getInspirationComments,
+    getUserComments,
+    allComments
   };
 }, {
   persist: true // 简化持久化配置

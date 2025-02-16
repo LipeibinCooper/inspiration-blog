@@ -1,72 +1,120 @@
 <template>
   <div class="comment-list">
-    <el-timeline>
-      <el-timeline-item
-        v-for="comment in comments"
+    <div v-if="comments.length" class="comments">
+      <div 
+        v-for="comment in comments" 
         :key="comment.id"
-        :timestamp="formatDate(comment.createdAt)"
-        placement="top"
+        class="comment-item"
       >
-        <el-card>
-          <template #header>
-            <div class="comment-header">
-              <span class="inspiration-title">{{ comment.inspirationTitle }}</span>
-              <el-button 
-                type="text" 
-                @click="router.push(`/inspiration/${comment.inspirationId}`)"
-              >
-                查看灵感
-              </el-button>
+        <div class="comment-header">
+          <div class="user-info" @click="router.push(`/profile/${comment.userId}`)">
+            <el-avatar 
+              :size="40"
+              src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+            />
+            <div class="user-meta">
+              <span class="username">{{ comment.username }}</span>
+              <span class="time">{{ formatDate(comment.createdAt) }}</span>
             </div>
-          </template>
-          <p>{{ comment.content }}</p>
-        </el-card>
-      </el-timeline-item>
-    </el-timeline>
+          </div>
+        </div>
+        <div class="comment-content">
+          {{ comment.content }}
+        </div>
+      </div>
+    </div>
+    <el-empty 
+      v-else 
+      description="暂无评论"
+    />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import { useRouter } from "vue-router";
-import type { Comment } from "@/types/inspiration";
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import type { Comment } from '@/types/inspiration';
+import { useInspirationStore } from '@/store/useInspirationStore';
 
-export default defineComponent({
-  name: "CommentList",
-  props: {
-    comments: {
-      type: Array as () => Comment[],
-      required: true
-    }
-  },
-  setup() {
-    const router = useRouter();
+// eslint-disable-next-line no-undef
+const props = withDefaults(defineProps<{
+  inspirationId: number;
+}>(), {
+  inspirationId: 0
+});
 
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString();
-    };
+const router = useRouter();
+const inspirationStore = useInspirationStore();
 
-    return {
-      router,
-      formatDate
-    };
-  }
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleString();
+};
+
+// 获取评论列表
+const comments = computed<Comment[]>(() => {
+  const commentList = inspirationStore.getInspirationComments(props.inspirationId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  console.log('Comments for inspiration', props.inspirationId, commentList);
+  return commentList;
 });
 </script>
 
 <style scoped>
 .comment-list {
-  padding: 20px;
+  margin-top: 20px;
+}
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin-bottom: 12px;
 }
 
-.inspiration-title {
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.user-info:hover {
+  opacity: 0.8;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.username {
   font-weight: bold;
+  color: #409eff;
+  font-size: 14px;
+}
+
+.time {
+  font-size: 12px;
+  color: #999;
+}
+
+.comment-content {
+  margin-left: 52px;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 </style> 
