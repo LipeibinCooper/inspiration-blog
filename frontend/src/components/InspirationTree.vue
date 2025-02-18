@@ -12,10 +12,12 @@
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <template v-if="isExpandable(arrayIndex, itemIndex)">
+                    <template v-if="isExpandable(arrayIndex, itemIndex).canExpandRight">
                       <el-dropdown-item @click="handleAddRight(arrayIndex, itemIndex)">
                         <el-icon><Plus /></el-icon> 向右扩展
                       </el-dropdown-item>
+                    </template>
+                    <template v-if="isExpandable(arrayIndex, itemIndex).canExpandDown">
                       <el-dropdown-item @click="handleAddDown(arrayIndex, itemIndex)">
                         <el-icon><Plus /></el-icon> 向下扩展
                       </el-dropdown-item>
@@ -131,8 +133,23 @@ onMounted(() => {
 
 // 判断节点是否可扩展（最右或最下的节点）
 const isExpandable = (arrayIndex: number, itemIndex: number) => {
-  return itemIndex === arrays.value[arrayIndex].length - 1 || 
-         arrayIndex === arrays.value.length - 1;
+  // 根节点（第一行第一个）特殊处理
+  if (arrayIndex === 0 && itemIndex === 0) {
+    // 只有当没有其他节点时才能向下扩展
+    const hasOnlyRoot = arrays.value.length === 1 && arrays.value[0].length === 1;
+    return {
+      canExpandRight: false,
+      canExpandDown: hasOnlyRoot
+    };
+  }
+  
+  // 最右侧节点可以向右扩展
+  const canExpandRight = itemIndex === arrays.value[arrayIndex].length - 1;
+  
+  // 最下方第一个节点可以向下扩展
+  const canExpandDown = arrayIndex === arrays.value.length - 1 && itemIndex === 0;
+  
+  return { canExpandRight, canExpandDown };
 };
 
 // 向右添加节点
