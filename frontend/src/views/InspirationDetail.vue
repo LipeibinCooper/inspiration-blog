@@ -5,68 +5,71 @@
       <h2>{{ inspiration?.title }}</h2>
     </div>
 
-    <div class="detail-content">
-      <p>{{ inspiration?.content }}</p>
-      <!-- 添加灵感树组件 -->
-      <div class="inspiration-tree-container" v-if="inspiration">
-        <!-- <h3>思维导图</h3> -->
-        <inspiration-tree
-          :node="{
-            id: inspiration.id,
-            parentId: null,
-            content: inspiration.title,
-            createdAt: inspiration.createdAt,
-            updatedAt: inspiration.updatedAt,
-            children: treeNodes
-          }"
-          @update="handleUpdateNode"
-          @add="handleAddNode"
-          @delete="handleDeleteNode"
-        />
+    <div class="content-wrapper">
+      <!-- 左侧：灵感内容和树形图 -->
+      <div class="main-content">
+        <div class="detail-content">
+          <p>{{ inspiration?.content }}</p>
+          <!-- 添加灵感树组件 -->
+          <div class="inspiration-tree-container" v-if="inspiration">
+            <inspiration-tree
+              :node="{
+                id: inspiration.id,
+                parentId: null,
+                content: inspiration.title,
+                createdAt: inspiration.createdAt,
+                updatedAt: inspiration.updatedAt,
+                children: treeNodes
+              }"
+              @update="handleUpdateNode"
+              @add="handleAddNode"
+              @delete="handleDeleteNode"
+            />
+          </div>
+        </div>
+
+        <div class="detail-footer">
+          <div class="time-info">
+            创建时间: {{ formatTime(inspiration?.createdAt) }}
+            <template v-if="inspiration?.updatedAt">
+              | 更新时间: {{ formatTime(inspiration?.updatedAt) }}
+            </template>
+          </div>
+
+          <!-- 互动按钮区 -->
+          <div class="interaction-buttons">
+            <el-button :type="isLiked ? 'primary' : 'default'" @click="handleLike">
+              <el-icon><Pointer /></el-icon>
+              点赞 {{ inspiration?.likes || 0 }}
+            </el-button>
+            <el-button
+              :type="isCollected ? 'primary' : 'default'"
+              @click="handleCollection"
+            >
+              <el-icon><Star /></el-icon>
+              收藏 {{ inspiration?.collections || 0 }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：评论区 -->
+      <div class="comments-section">
+        <h3>评论区</h3>
+        <div class="comment-input">
+          <el-input
+            v-model="newComment"
+            type="textarea"
+            :rows="2"
+            placeholder="写下你的评论..."
+          />
+          <el-button type="primary" :loading="submitting" @click="handleComment">
+            发表评论
+          </el-button>
+        </div>
+        <comment-list v-if="inspiration" :inspiration-id="inspiration.id" />
       </div>
     </div>
-
-    <div class="detail-footer">
-      <div class="time-info">
-        创建时间: {{ formatTime(inspiration?.createdAt) }}
-        <template v-if="inspiration?.updatedAt">
-          | 更新时间: {{ formatTime(inspiration?.updatedAt) }}
-        </template>
-      </div>
-
-      <!-- 互动按钮区 -->
-      <div class="interaction-buttons">
-        <el-button :type="isLiked ? 'primary' : 'default'" @click="handleLike">
-          <el-icon><Pointer /></el-icon>
-          点赞 {{ inspiration?.likes || 0 }}
-        </el-button>
-        <el-button
-          :type="isCollected ? 'primary' : 'default'"
-          @click="handleCollection"
-        >
-          <el-icon><Star /></el-icon>
-          收藏 {{ inspiration?.collections || 0 }}
-        </el-button>
-      </div>
-    </div>
-
-    <!-- 评论区 -->
-    <div class="comments-section">
-      <h3>评论区</h3>
-      <div class="comment-input">
-        <el-input
-          v-model="newComment"
-          type="textarea"
-          :rows="2"
-          placeholder="写下你的评论..."
-        />
-        <el-button type="primary" :loading="submitting" @click="handleComment">
-          发表评论
-        </el-button>
-      </div>
-    </div>
-
-    <comment-list v-if="inspiration" :inspiration-id="inspiration.id" />
   </div>
 </template>
 
@@ -290,8 +293,30 @@ const deleteNode = (nodes: InspirationNode[], id: number): boolean => {
 <style scoped>
 .inspiration-detail {
   padding: 20px;
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.main-content {
+  flex: 3;
+}
+
+.comments-section {
+  flex: 1;
+  min-width: 300px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
 }
 
 .detail-header {
@@ -300,18 +325,8 @@ const deleteNode = (nodes: InspirationNode[], id: number): boolean => {
   gap: 20px;
   margin-bottom: 20px;
 }
-.inspiration-tree-container {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-}
-
-.inspiration-tree-container h3 {
-  margin-bottom: 20px;
-  color: #333;
-}
 .detail-content {
-  margin: 20px 0;
+  margin-bottom: 20px;
   line-height: 1.6;
   white-space: pre-wrap;
   background: #fff;
@@ -324,37 +339,12 @@ const deleteNode = (nodes: InspirationNode[], id: number): boolean => {
   padding: 20px;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.time-info {
-  color: #666;
-  font-size: 14px;
-}
-.interaction-buttons {
-  display: flex;
-  gap: 12px;
-}
-.comments-section {
-  margin-top: 20px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-.comments-section h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
 }
 .comment-input {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-bottom: 20px;
 }
 .comment-input .el-button {
-  align-self: flex-end;
+  margin-top: 10px;
+  width: 100%;
 }
 </style>
