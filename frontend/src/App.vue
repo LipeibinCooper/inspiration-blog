@@ -9,7 +9,7 @@
           <template v-if="isLoggedIn">
             <el-dropdown>
               <div class="user-info">
-                <el-avatar :size="32">{{ userInfo?.username.charAt(0) }}</el-avatar>
+                <el-avatar :size="32">{{ userInfo?.username?.charAt(0) }}</el-avatar>
                 <span>{{ userInfo?.username }}</span>
               </div>
               <template #dropdown>
