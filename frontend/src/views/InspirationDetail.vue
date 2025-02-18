@@ -9,7 +9,7 @@
       <p>{{ inspiration?.content }}</p>
       <!-- 添加灵感树组件 -->
       <div class="inspiration-tree-container" v-if="inspiration">
-        <h3>思维导图</h3>
+        <!-- <h3>思维导图</h3> -->
         <inspiration-tree
           :node="{
             id: inspiration.id,
