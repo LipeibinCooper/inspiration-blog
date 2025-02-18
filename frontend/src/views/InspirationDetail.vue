@@ -14,7 +14,7 @@
           :node="{
             id: inspiration.id,
             parentId: null,
-            content: inspiration.content,
+            content: inspiration.title,
             createdAt: inspiration.createdAt,
             updatedAt: inspiration.updatedAt,
             children: treeNodes

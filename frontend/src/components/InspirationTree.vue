@@ -6,41 +6,32 @@
           <div class="node-content">
             <div class="node-text">{{ item.content }}</div>
             <div class="node-actions">
-              <el-button-group>
-                <el-button 
-                  type="primary" 
-                  size="small"
-                  @click="handleAddRight(arrayIndex, itemIndex)"
-                  title="向右扩展"
-                >
-                  <el-icon><Plus /></el-icon>
-                  →
-                </el-button>
-                <el-button 
-                  type="success" 
-                  size="small"
-                  @click="handleAddDown(arrayIndex, itemIndex)"
-                  title="向下扩展"
-                >
-                  <el-icon><Plus /></el-icon>
-                  ↓
-                </el-button>
-                <el-button 
-                  type="warning" 
-                  size="small"
-                  @click="showEditDialog = true; currentEditNode = item"
-                >
-                  <el-icon><Edit /></el-icon>
-                </el-button>
-                <el-button 
-                  type="danger" 
-                  size="small"
-                  @click="handleDelete(arrayIndex, itemIndex)"
-                  v-if="!(arrayIndex === 0 && itemIndex === 0)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </el-button>
-              </el-button-group>
+              <el-dropdown trigger="click">
+                <span class="el-dropdown-link">
+                  <el-icon><More /></el-icon>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <template v-if="isExpandable(arrayIndex, itemIndex)">
+                      <el-dropdown-item @click="handleAddRight(arrayIndex, itemIndex)">
+                        <el-icon><Plus /></el-icon> 向右扩展
+                      </el-dropdown-item>
+                      <el-dropdown-item @click="handleAddDown(arrayIndex, itemIndex)">
+                        <el-icon><Plus /></el-icon> 向下扩展
+                      </el-dropdown-item>
+                    </template>
+                    <el-dropdown-item @click="() => {showEditDialog = true; currentEditNode = item; editNodeContent = item.content}">
+                      <el-icon><Edit /></el-icon> 编辑
+                    </el-dropdown-item>
+                    <el-dropdown-item 
+                      v-if="!(arrayIndex === 0 && itemIndex === 0)"
+                      @click="handleDelete(arrayIndex, itemIndex)"
+                    >
+                      <el-icon><Delete /></el-icon> 删除
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </div>
         </div>
@@ -86,8 +77,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue';
-import { Plus, Edit, Delete } from '@element-plus/icons-vue';
+import { ref, onMounted } from 'vue';
+import { Plus, Edit, Delete, More } from '@element-plus/icons-vue';
 import type { InspirationNode } from '@/types/inspiration-tree';
 
 const props = defineProps<{
@@ -105,8 +96,30 @@ const showAddDialog = ref(false);
 const showEditDialog = ref(false);
 const newNodeContent = ref('');
 const editNodeContent = ref('');
-const addDirection = ref<'right' | 'down'>('right');
 const currentEditNode = ref<InspirationNode | null>(null);
+
+// 处理编辑节点
+const handleEdit = () => {
+  if (!editNodeContent.value.trim() || !currentEditNode.value) return;
+  
+  emit('update', {
+    id: currentEditNode.value.id,
+    content: editNodeContent.value.trim()
+  });
+
+  // 更新本地节点内容
+  arrays.value.forEach(array => {
+    array.forEach(node => {
+      if (node.id === currentEditNode.value?.id) {
+        node.content = editNodeContent.value.trim();
+      }
+    });
+  });
+
+  editNodeContent.value = '';
+  showEditDialog.value = false;
+};
+const addDirection = ref<'right' | 'down'>('right');
 const currentAddPosition = ref<{arrayIndex: number; itemIndex: number} | null>(null);
 
 // 初始化数组结构
@@ -115,6 +128,12 @@ onMounted(() => {
     arrays.value[0][0] = props.node;
   }
 });
+
+// 判断节点是否可扩展（最右或最下的节点）
+const isExpandable = (arrayIndex: number, itemIndex: number) => {
+  return itemIndex === arrays.value[arrayIndex].length - 1 || 
+         arrayIndex === arrays.value.length - 1;
+};
 
 // 向右添加节点
 const handleAddRight = (arrayIndex: number, itemIndex: number) => {
@@ -162,26 +181,26 @@ const handleAdd = () => {
 };
 
 // 处理编辑节点
-const handleEdit = () => {
-  if (!editNodeContent.value.trim() || !currentEditNode.value) return;
+// const handleEdit = () => {
+//   if (!editNodeContent.value.trim() || !currentEditNode.value) return;
   
-  emit('update', {
-    id: currentEditNode.value.id,
-    content: editNodeContent.value.trim()
-  });
+//   emit('update', {
+//     id: currentEditNode.value?.id,
+//     content: editNodeContent.value.trim()
+//   });
 
-  // 更新本地节点内容
-  arrays.value.forEach(array => {
-    array.forEach(node => {
-      if (node.id === currentEditNode.value?.id) {
-        node.content = editNodeContent.value.trim();
-      }
-    });
-  });
+//   // 更新本地节点内容
+//   arrays.value.forEach(array => {
+//     array.forEach(node => {
+//       if (node.id === currentEditNode.value?.id) {
+//         node.content = editNodeContent.value.trim();
+//       }
+//     });
+//   });
 
-  editNodeContent.value = '';
-  showEditDialog.value = false;
-};
+//   editNodeContent.value = '';
+//   showEditDialog.value = false;
+// };
 
 // 处理删除节点
 const handleDelete = (arrayIndex: number, itemIndex: number) => {
@@ -194,116 +213,24 @@ const handleDelete = (arrayIndex: number, itemIndex: number) => {
     arrays.value.splice(arrayIndex, 1);
   }
 };
-
-// 监听编辑对话框，设置初始内容
-watch(showEditDialog, (newVal) => {
-  if (newVal && currentEditNode.value) {
-    editNodeContent.value = currentEditNode.value.content;
-  }
-});
 </script>
 
 <style scoped>
 .inspiration-tree {
   padding: 20px;
+  overflow: hidden;
 }
 
-.node-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #fff;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  max-width: 400px;
-}
-
-.node-content:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.node-text {
-  flex: 1;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  margin-bottom: 10px;
-}
-
-.node-actions {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.node-content:hover .node-actions {
-  opacity: 1;
-}
-
-.children {
-  padding-left: 40px;
-  margin-top: 20px;
-  position: relative;
-}
-
-.child-node {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.branch-line {
-  position: absolute;
-  left: -20px;
-  top: -10px;
-  bottom: 50%;
-  width: 2px;
-  background: #ddd;
-}
-
-.child-node::before {
-  content: '';
-  position: absolute;
-  left: -20px;
-  top: 50%;
-  width: 20px;
-  height: 2px;
-  background: #ddd;
-}
-
-.child-node:last-child {
-  margin-bottom: 0;
-}
-
-.el-dialog__body {
-  padding-top: 20px;
-}
-
-/* 添加节点展开/收起的过渡动画 */
-.children-enter-active,
-.children-leave-active {
-  transition: all 0.3s ease;
-}
-
-.children-enter-from,
-.children-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
 .array-container {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   padding: 20px;
 }
 
 .array-row {
   display: flex;
-  gap: 32px;
+  gap: 24px;
   align-items: flex-start;
   position: relative;
 }
@@ -314,7 +241,7 @@ watch(showEditDialog, (newVal) => {
   left: 0;
   right: 0;
   top: 50%;
-  height: 2px;
+  height: 1px;
   background: linear-gradient(90deg, rgba(221,221,221,0) 0%, rgba(221,221,221,1) 50%, rgba(221,221,221,0) 100%);
   z-index: -1;
 }
@@ -324,29 +251,54 @@ watch(showEditDialog, (newVal) => {
   animation: fadeIn 0.3s ease;
 }
 
-.array-item::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -32px;
-  height: 32px;
-  width: 2px;
-  background: #ddd;
-  display: none;
-}
-
-.array-row:not(:first-child) .array-item::before {
-  display: block;
-}
-
 .node-content {
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 16px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 240px;
+  min-width: 180px;
+  max-width: 300px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-content:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.node-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.node-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.node-content:hover .node-actions,
+.node-content:focus-within .node-actions {
+  opacity: 1;
+}
+
+.el-dropdown-link {
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.el-dropdown-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 @keyframes fadeIn {
@@ -358,34 +310,5 @@ watch(showEditDialog, (newVal) => {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.el-button-group .el-button {
-  margin: 0 4px;
-  border-radius: 6px !important;
-}
-
-.el-button-group .el-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.el-button-group {
-  display: flex;
-  gap: 5px;
-}
-.node-text {
-  white-space: pre-wrap;
-  margin-bottom: 10px;
-}
-
-.node-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.el-button-group {
-  display: flex;
-  gap: 5px;
 }
 </style>
