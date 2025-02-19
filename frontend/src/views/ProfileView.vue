@@ -3,7 +3,7 @@
     <!-- 用户信息区域 -->
     <el-card class="user-info">
       <div class="user-header">
-        <el-avatar :size="64">{{ profileUser?.username.charAt(0) }}</el-avatar>
+        <el-avatar :size="64">{{ profileUser?.username?.charAt(0) }}</el-avatar>
         <h2>{{ profileUser?.username }}</h2>
       </div>
       <div class="user-stats">

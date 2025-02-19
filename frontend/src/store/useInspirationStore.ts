@@ -54,12 +54,12 @@ export const useInspirationStore = defineStore("inspiration", () => {
   ]);
 
   // 当前用户的灵感笔记（只在左侧列表显示）
-  const myInspirations = computed(() => 
+  const myInspirations = computed(() =>
     allInspirations.value.filter(note => note.userId === authStore.userInfo?.id)
   );
 
   // 所有公开的灵感笔记（包括自己的）
-  const recommendedInspirations = computed(() => 
+  const recommendedInspirations = computed(() =>
     allInspirations.value.filter(note => note.isPublic)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
