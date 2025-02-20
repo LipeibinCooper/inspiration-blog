@@ -5,19 +5,16 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css"; // 引入 Element Plus 样式
-import { useAuthStore } from "@/store/useAuthStore";
-
-const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate);
+import "./styles/global.scss";
 
 const app = createApp(App);
+const pinia = createPinia();
+
+// 添加持久化插件
+pinia.use(piniaPluginPersistedstate);
 
 app.use(pinia);
 app.use(router);
 app.use(ElementPlus);
-
-// 初始化认证状态
-const authStore = useAuthStore();
-authStore.initAuth();
 
 app.mount("#app");

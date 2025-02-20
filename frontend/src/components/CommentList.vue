@@ -9,9 +9,11 @@
         <div class="comment-header">
           <div class="user-info" @click="router.push(`/profile/${comment.userId}`)">
             <el-avatar 
-              :size="40"
-              src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
-            />
+              :size="32" 
+              :src="comment.avatar"
+              :key="`${comment.id}-${forceUpdate}`">
+              {{ comment.username.charAt(0) }}
+            </el-avatar>
             <div class="user-meta">
               <span class="username">{{ comment.username }}</span>
               <span class="time">{{ formatDate(comment.createdAt) }}</span>
@@ -35,6 +37,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Comment } from '@/types/inspiration';
 import { useInspirationStore } from '@/store/useInspirationStore';
+import { useUserAvatar } from "@/hooks/useUserAvatar";
 
 // eslint-disable-next-line no-undef
 const props = withDefaults(defineProps<{
@@ -45,6 +48,7 @@ const props = withDefaults(defineProps<{
 
 const router = useRouter();
 const inspirationStore = useInspirationStore();
+const { forceUpdate } = useUserAvatar();
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);

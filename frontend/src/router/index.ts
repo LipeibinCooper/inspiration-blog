@@ -25,6 +25,39 @@ const routes: Array<RouteRecordRaw> = [
     path: "/profile/:id?",
     name: "profile",
     component: () => import("../views/ProfileView.vue"),
+    redirect: { name: 'my-inspirations' },
+    children: [
+      {
+        path: "info",
+        name: "profile-info",
+        component: () => import("../views/profile/ProfileInfo.vue")
+      },
+      {
+        path: "inspirations",
+        name: "my-inspirations",
+        component: () => import("../views/profile/MyInspirations.vue")
+      },
+      {
+        path: "history",
+        name: "browse-history",
+        component: () => import("../views/profile/BrowseHistory.vue")
+      },
+      {
+        path: "likes",
+        name: "my-likes",
+        component: () => import("../views/profile/MyLikes.vue")
+      },
+      {
+        path: "collections",
+        name: "my-collections",
+        component: () => import("../views/profile/MyCollections.vue")
+      },
+      {
+        path: "comments",
+        name: "my-comments",
+        component: () => import("../views/profile/MyComments.vue")
+      }
+    ],
     props: true,
     meta: { requiresAuth: true }
   }

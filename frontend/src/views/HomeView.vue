@@ -1,259 +1,426 @@
 <template>
   <div class="home-container">
-    <!-- 左侧：灵感列表 -->
+    <!-- 左侧：我的灵感树 -->
     <aside class="sidebar">
-      <h2>我的笔记</h2>
-      <el-menu :default-active="inspirationStore.activeNoteId" class="inspiration-menu">
-        <el-menu-item
+      <div class="sidebar-header">
+        <h2>我的灵感树</h2>
+        <el-button 
+          type="primary" 
+          plain
+          circle
+          @click="showCreateDialog = true"
+        >
+          <el-icon><Plus /></el-icon>
+        </el-button>
+      </div>
+      <div class="inspiration-list">
+        <div
           v-for="note in inspirationStore.myInspirations"
           :key="note.id"
-          :index="note.id.toString()"
+          class="inspiration-item"
+          :class="{ active: note.id === currentId }"
           @click="goToDetail(note.id)"
         >
-          {{ note.title }}
-        </el-menu-item>
-      </el-menu>
+          <span class="title">{{ note.title }}</span>
+          <el-tag v-if="!note.isPublic" size="small" type="info">私密</el-tag>
+        </div>
+      </div>
     </aside>
 
-    <!-- 右侧：推荐笔记 -->
+    <!-- 右侧：发现灵感 -->
     <main class="main-content">
-      <header class="top-bar">
-        <h1>发现灵感</h1>
-        <el-button 
-          type="success" 
-          @click="showCreateDialog"
-        >
-          <el-icon><CirclePlus /></el-icon>
-          创建灵感树
-        </el-button>
-      </header>
+      <div class="content-wrapper">
+        <header class="section-header">
+          <h1>发现灵感</h1>
+          <p class="subtitle">探索他人的思维火花，激发你的创意灵感</p>
+        </header>
 
-      <div class="recommendations">
-        <el-card
-          v-for="note in inspirationStore.recommendedInspirations"
-          :key="note.id"
-          class="inspiration-card"
-        >
-          <template #header>
-            <div class="card-header">
-              <h3>{{ note.title }}</h3>
-              <el-tag v-if="!note.isPublic" size="small" type="info">私密</el-tag>
-            </div>
-          </template>
-          <p>{{ note.content.substring(0, 80) }}...</p>
-          <el-button type="text" @click="goToDetail(note.id)">查看详情</el-button>
-        </el-card>
+        <!-- 只保留这一个 InspirationList -->
+        <inspiration-list :inspirations="inspirationStore.recommendedInspirations" />
       </div>
     </main>
 
-    <!-- 创建灵感弹窗 -->
+    <!-- 创建灵感树对话框 -->
     <el-dialog
-      v-model="dialogVisible"
-      title="种下一颗灵感种子"
-      width="50%"
-    >
-      <div class="dialog-hint">
-        每个伟大的想法都始于一颗种子...
+      v-model="showCreateDialog"
+      title="创建灵感树"
+      width="600px"
+      :close-on-click-modal="false"
+      class="create-dialog">
+      <div class="dialog-content">
+        <el-form 
+          :model="createForm" 
+          :rules="rules"
+          ref="createFormRef"
+          label-position="top"
+          class="create-form">
+          <el-form-item 
+            label="种子灵感" 
+            prop="title"
+            class="form-item">
+            <div class="form-item-hint">这是你灵感树的核心节点，后续可以基于它延伸更多想法</div>
+            <el-input
+              v-model="createForm.title"
+              type="text"
+              placeholder="输入灵感树的核心想法"
+              maxlength="50"
+              show-word-limit
+            />
+          </el-form-item>
+          
+          <el-form-item 
+            label="描述（选填）" 
+            class="form-item">
+            <div class="form-item-hint">补充说明你的想法，让它更容易被理解</div>
+            <el-input
+              v-model="createForm.content"
+              type="textarea"
+              :rows="4"
+              placeholder="补充说明你的想法..."
+              maxlength="500"
+              show-word-limit
+            />
+          </el-form-item>
+
+          <el-form-item label="可见性" class="form-item">
+            <el-radio-group v-model="createForm.isPublic" class="visibility-group">
+              <div class="visibility-options">
+                <el-radio :label="true" class="visibility-option">
+                  <template #default>
+                    <div class="visibility-label">
+                      <span class="visibility-title">公开</span>
+                      <span class="visibility-desc">所有人都可以看到这棵灵感树</span>
+                    </div>
+                  </template>
+                </el-radio>
+                <el-radio :label="false" class="visibility-option">
+                  <template #default>
+                    <div class="visibility-label">
+                      <span class="visibility-title">私密</span>
+                      <span class="visibility-desc">只有你自己可以看到这棵灵感树</span>
+                    </div>
+                  </template>
+                </el-radio>
+              </div>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
       </div>
-      <el-form 
-        :model="newInspiration"
-        :rules="rules"
-        ref="formRef"
-        label-width="80px"
-      >
-        <el-form-item label="标题" prop="title">
-          <el-input 
-            v-model="newInspiration.title"
-            placeholder="请输入标题"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="内容" prop="content">
-          <el-input 
-            v-model="newInspiration.content" 
-            type="textarea" 
-            rows="4"
-            placeholder="写下你的第一个想法..."
-          ></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-switch
-            v-model="newInspiration.isPublic"
-            active-text="公开"
-            inactive-text="私密"
-          />
-        </el-form-item>
-      </el-form>
+
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="success" @click="createNewInspiration">
-          <el-icon><CirclePlus /></el-icon>
-          创建灵感树
-        </el-button>
+        <div class="dialog-footer">
+          <el-button @click="showCreateDialog = false">取消</el-button>
+          <el-button 
+            type="primary" 
+            :loading="creating"
+            @click="handleCreate">
+            创建灵感树
+          </el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useInspirationStore } from "@/store/useInspirationStore";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
-import { CirclePlus } from '@element-plus/icons-vue';
+import { Plus } from '@element-plus/icons-vue';
+import InspirationList from "@/components/InspirationList.vue";
 
-export default defineComponent({
-  name: "HomeView",
-  components: {
-    CirclePlus
-  },
-  setup() {
-    const router = useRouter();
-    const inspirationStore = useInspirationStore();
-    const formRef = ref<FormInstance>();
-    const dialogVisible = ref(false);
+const router = useRouter();
+const inspirationStore = useInspirationStore();
+const createFormRef = ref<FormInstance>();
+const showCreateDialog = ref(false);
+const creating = ref(false);
 
-    const newInspiration = ref({
-      title: "",
-      content: "",
-      isPublic: true
+// 初始化表单数据
+const createForm = ref({
+  title: "",
+  content: "",
+  isPublic: true
+});
+
+// 表单验证规则
+const rules = {
+  title: [
+    { required: true, message: '请输入种子灵感', trigger: 'blur' },
+    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+  ]
+};
+
+// 创建新灵感
+const handleCreate = async () => {
+  if (!createFormRef.value) return;
+  
+  try {
+    creating.value = true;
+    await createFormRef.value.validate();
+    
+    const newId = await inspirationStore.addInspiration({
+      title: createForm.value.title,
+      content: createForm.value.content,
+      isPublic: createForm.value.isPublic
     });
 
-    // 表单验证规则
-    const rules = {
-      title: [
-        { required: true, message: "标题不能为空", trigger: "blur" }
-      ],
-      content: [
-        { required: true, message: "内容不能为空", trigger: "blur" }
-      ]
-    };
-
-    // 显示创建对话框
-    const showCreateDialog = () => {
-      dialogVisible.value = true;
-    };
-
-    // 创建新灵感
-    const createNewInspiration = async () => {
-      if (!formRef.value) return;
-      
-      await formRef.value.validate(async (valid) => {
-        if (valid) {
-          try {
-            const newId = await inspirationStore.addInspiration(newInspiration.value);
-            dialogVisible.value = false;
-            newInspiration.value = { title: "", content: "", isPublic: true };
-            ElMessage.success("灵感创建成功");
-            // 创建成功后跳转到详情页
-            router.push(`/inspiration/${newId}`);
-          } catch (error) {
-            ElMessage.error("创建失败");
-          }
-        }
-      });
-    };
-
-    // 跳转到详情页
-    const goToDetail = (id: number) => {
-      router.push(`/inspiration/${id}`);
-    };
-
-    return {
-      inspirationStore,
-      dialogVisible,
-      newInspiration,
-      createNewInspiration,
-      showCreateDialog,
-      formRef,
-      rules,
-      goToDetail
-    };
+    showCreateDialog.value = false;
+    createForm.value = { title: "", content: "", isPublic: true };
+    ElMessage.success("灵感创建成功");
+    router.push(`/inspiration/${newId}`);
+  } catch (error) {
+    ElMessage.error("创建失败");
+  } finally {
+    creating.value = false;
   }
-});
+};
+
+// 跳转到详情页
+const goToDetail = (id: number) => {
+  router.push(`/inspiration/${id}`);
+};
 </script>
 
-<style scoped>
-/* 主体布局 */
+<style scoped lang="scss">
 .home-container {
   display: flex;
-  height: 100vh;
-  background-color: #f8f9fa;
-  font-family: "Arial", sans-serif;
+  min-height: 100vh;
+  background-color: #fff;
 }
 
-/* 左侧笔记列表 */
+/* 左侧边栏 */
 .sidebar {
-  width: 280px;
-  background: #fff;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  border-right: 1px solid #eaecef;
+  width: 320px;
+  background: #fbfbfd;
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  
+  .sidebar-header {
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1d1d1f;
+      letter-spacing: -0.02em;
+    }
+  }
 }
 
-.inspiration-menu {
-  border-right: none;
+.inspiration-list {
+  padding: 16px;
 }
 
-/* 右侧内容区域 */
+.inspiration-item {
+  padding: 16px 20px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+  
+  &.active {
+    background: rgba(0, 0, 0, 0.03);
+  }
+  
+  .title {
+    font-size: 15px;
+    color: #1d1d1f;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* 主内容区 */
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: 64px 40px;
+  background: #fff;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  max-width: 600px;
+  margin: 0 auto 64px;
+  text-align: center;
+  
+  h1 {
+    font-size: 48px;
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: -0.03em;
+    margin: 0 0 16px;
+    line-height: 1.1;
+  }
+  
+  .subtitle {
+    font-size: 24px;
+    color: #6e6e73;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+}
+
+.inspiration-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.inspiration-card {
+  background: #fbfbfd;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  
+  &:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  }
+  
+  .card-content {
+    padding: 32px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    
+    h3 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1d1d1f;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.3;
+    }
+  }
+  
+  .card-footer {
+    padding: 24px 32px;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid rgba(0, 0, 0, 0.03);
+    
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      .author-avatar {
+        border: 2px solid #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+      
+      .author-name {
+        font-size: 15px;
+        font-weight: 500;
+        color: #1d1d1f;
+        letter-spacing: -0.01em;
+      }
+    }
+
+    .meta-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      .time {
+        font-size: 14px;
+        color: #86868b;
+        letter-spacing: -0.01em;
+      }
+    }
+  }
 }
 
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 800px;
-  margin-bottom: 20px;
-}
+/* 创建灵感树对话框样式 */
+.create-dialog {
+  :deep(.el-dialog) {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+    
+    .el-dialog__header {
+      padding: 32px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+      
+      .el-dialog__title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1d1d1f;
+        letter-spacing: -0.02em;
+      }
+    }
+    
+    .el-dialog__body {
+      padding: 40px;
+    }
+  }
 
-.recommendations {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  width: 100%;
-  max-width: 800px;
-}
+  .form-item {
+    margin-bottom: 32px;
+    
+    :deep(.el-form-item__label) {
+      font-size: 16px;
+      color: #1d1d1f;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    
+    .form-item-hint {
+      font-size: 14px;
+      color: #86868b;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+  }
 
-/* 推荐笔记卡片样式 */
-.inspiration-card {
-  padding: 20px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
+  .visibility-options {
+    display: flex;
+    gap: 16px;
+  }
 
-.inspiration-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* 添加开关样式 */
-.el-switch {
-  margin-top: 10px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.el-tag {
-  margin-left: auto;
-}
-
-.dialog-hint {
-  color: #67c23a;
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 14px;
+  .visibility-option {
+    flex: 1;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: #06c;
+      background: rgba(0, 102, 204, 0.02);
+    }
+    
+    &.is-checked {
+      border-color: #06c;
+      background: rgba(0, 102, 204, 0.05);
+    }
+  }
 }
 </style>

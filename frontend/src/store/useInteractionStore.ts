@@ -12,12 +12,7 @@ export const useInteractionStore = defineStore("interaction", () => {
   const userInteractions = ref<Record<number, UserInteraction>>({});
 
   // 获取当前用户的互动记录
-  const currentUserInteraction = ref<UserInteraction>({
-    likes: [],
-    eventLikes: [],
-    collections: [],
-    comments: []
-  });
+  const currentUserInteraction = ref<UserInteraction | null>(null);
 
   // 添加 watcher 来监听用户变化
   watch(() => authStore.userInfo?.id, (newUserId) => {
@@ -33,12 +28,7 @@ export const useInteractionStore = defineStore("interaction", () => {
       }
       currentUserInteraction.value = userInteractions.value[newUserId];
     } else {
-      currentUserInteraction.value = {
-        likes: [],
-        eventLikes: [],
-        collections: [],
-        comments: []
-      };
+      currentUserInteraction.value = null;
     }
   }, { immediate: true });
 
@@ -92,24 +82,24 @@ export const useInteractionStore = defineStore("interaction", () => {
     inspirationStore.addComment(newComment);
 
     // 添加到当前用户的评论列表中
-    currentUserInteraction.value.comments.push(newComment);
+    currentUserInteraction.value?.comments.push(newComment);
 
     return newComment;
   };
 
   // 获取用户点赞的灵感
-  const likedInspirations = computed(() => 
+  const likedInspirations = computed(() =>
     currentUserInteraction.value
-      ? inspirationStore.allInspirations.filter(
+      ? inspirationStore.getInspirations().filter(
           (note: Inspiration) => currentUserInteraction.value?.likes.includes(note.id)
         )
       : []
   );
 
   // 获取用户收藏的灵感
-  const collectedInspirations = computed(() => 
+  const collectedInspirations = computed(() =>
     currentUserInteraction.value
-      ? inspirationStore.allInspirations.filter(
+      ? inspirationStore.getInspirations().filter(
           (note: Inspiration) => currentUserInteraction.value?.collections.includes(note.id)
         )
       : []

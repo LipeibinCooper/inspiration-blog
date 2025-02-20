@@ -2,8 +2,9 @@
 export interface InspirationNode {
   id: number;
   parentId: number | null;  // 父节点ID，根节点为null
+  title?: string;
   content: string;         // 节点内容
-  imageUrl?: string;       // 节点图片URL
+  imageUrls?: string[];    // 改为数组存储多张图片
   thumbnailUrl?: string;   // 图片缩略图URL
   createdAt: string;
   updatedAt: string;

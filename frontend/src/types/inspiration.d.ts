@@ -1,3 +1,10 @@
+// 作者类型定义
+export interface Author {
+  id: number;
+  name: string;
+  avatar?: string;  // 将 avatar 改为可选字段
+}
+
 // 灵感笔记的类型定义
 export interface Inspiration {
   id: number;
@@ -10,6 +17,7 @@ export interface Inspiration {
   likes: number;
   comments: number;
   collections: number;
+  author: Author;
   // 当前用户的互动状态
   isLiked?: boolean;
   isCollected?: boolean;
@@ -57,4 +65,12 @@ export interface LoginForm {
 export interface RegisterForm {
   username: string;
   password: string;
+}
+
+// 灵感树节点类型
+export interface InspirationNode {
+  id: number;
+  title: string;
+  content: string;
+  children: InspirationNode[];
 }

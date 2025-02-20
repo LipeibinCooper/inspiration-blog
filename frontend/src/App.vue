@@ -9,7 +9,13 @@
           <template v-if="isLoggedIn">
             <el-dropdown>
               <div class="user-info">
-                <el-avatar :size="32">{{ userInfo?.username?.charAt(0) }}</el-avatar>
+                <el-avatar 
+                  :size="32" 
+                  :src="userInfo?.avatar"
+                  @error="() => true"
+                  :key="forceUpdate">
+                  {{ userInfo?.username?.charAt(0) }}
+                </el-avatar>
                 <span>{{ userInfo?.username }}</span>
               </div>
               <template #dropdown>
@@ -36,35 +42,24 @@
   </el-container>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from "vue";
+<script lang="ts" setup>
 import { User } from "@element-plus/icons-vue";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "vue-router";
+import { useUserAvatar } from "@/hooks/useUserAvatar";
+import { computed } from "vue";
 
-export default defineComponent({
-  name: "App",
-  components: { User },
-  setup() {
-    const authStore = useAuthStore();
-    const router = useRouter();
+const router = useRouter();
+const authStore = useAuthStore();
+const { forceUpdate } = useUserAvatar();
 
-    const isLoggedIn = computed(() => authStore.isLoggedIn);
-    const userInfo = computed(() => authStore.userInfo);
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const userInfo = computed(() => authStore.userInfo);
 
-    const handleLogout = () => {
-      authStore.logout();
-      router.push("/login");
-    };
-
-    return {
-      isLoggedIn,
-      userInfo,
-      handleLogout,
-      router
-    };
-  }
-});
+const handleLogout = () => {
+  authStore.logout();
+  router.push("/login");
+};
 </script>
 
 <style scoped>

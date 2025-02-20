@@ -2,6 +2,8 @@
 export interface User {
   id: number;
   username: string;
+  email: string;
+  avatar?: string;
   token?: string;
 }
 
@@ -11,6 +13,13 @@ export interface LoginForm {
 }
 
 export interface RegisterForm extends LoginForm {
+  confirmPassword: string;
+}
+
+// 添加密码更新表单类型
+export interface PasswordUpdateForm {
+  oldPassword: string;
+  newPassword: string;
   confirmPassword: string;
 }
 
@@ -33,6 +42,7 @@ export interface Inspiration {
   likes: number;
   comments: number;
   collections: number;
+  author: Author;
 }
 
 // 修改用户互动记录
@@ -50,5 +60,12 @@ export interface Comment {
   createdAt: string;
   userId: number;
   username: string;
+  avatar?: string;
   inspirationId: number;
+}
+
+interface Author {
+  id: number;
+  name: string;
+  avatar: string;
 } 

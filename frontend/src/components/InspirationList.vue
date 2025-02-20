@@ -1,90 +1,113 @@
 <template>
   <div class="inspiration-list">
-    <el-card v-for="note in inspirations" :key="note.id" class="inspiration-card">
-      <template #header>
-        <div class="card-header">
-          <h3>{{ note.title }}</h3>
-          <el-tag v-if="!note.isPublic" size="small" type="info">私密</el-tag>
+    <el-card 
+      v-for="note in processedInspirations" 
+      :key="note.id" 
+      class="inspiration-card"
+      @click="router.push(`/inspiration/${note.id}`)"
+    >
+      <div class="card-content">
+        <h3 class="title">{{ note.title }}</h3>
+        <p class="content">{{ note.content.substring(0, 80) }}...</p>
+        <div class="meta-info">
+          <span class="author">{{ note.author.name }}</span>
+          <span class="dot">·</span>
+          <span class="time">大约 2 小时前</span>
         </div>
-      </template>
-      <p>{{ note.content.substring(0, 80) }}...</p>
-      <div class="card-footer">
-        <div class="stats">
-          <span><el-icon><Star /></el-icon> {{ note.collections }}</span>
-          <span><el-icon><ChatRound /></el-icon> {{ note.comments }}</span>
-          <span><el-icon><Pointer /></el-icon> {{ note.likes }}</span>
-        </div>
-        <el-button type="text" @click="router.push(`/inspiration/${note.id}`)">
-          查看详情
-        </el-button>
       </div>
     </el-card>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed } from 'vue';
 import { Star, ChatRound, Pointer } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { Inspiration } from "@/types/inspiration";
 
-export default defineComponent({
-  name: "InspirationList",
-  components: {
-    Star,
-    ChatRound,
-    Pointer
-  },
-  props: {
-    inspirations: {
-      type: Array as () => Inspiration[],
-      required: true
+const props = defineProps<{
+  inspirations: Inspiration[]
+}>();
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+// 处理灵感数据，确保作者信息是最新的
+const processedInspirations = computed(() => {
+  return props.inspirations.map(inspiration => {
+    const author = authStore.getUserById(inspiration.userId);
+    if (author) {
+      return {
+        ...inspiration,
+        author: {
+          id: author.id,
+          name: author.username
+        }
+      };
     }
-  },
-  setup() {
-    const router = useRouter();
-    return { router };
-  }
+    return inspiration;
+  });
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .inspiration-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .inspiration-card {
-  margin-bottom: 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  :deep(.el-card__body) {
+    padding: 20px;
+  }
 }
 
-.card-header {
+.card-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.card-header h3 {
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.content {
+  font-size: 14px;
+  color: #6e6e73;
+  line-height: 1.6;
   margin: 0;
 }
 
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-}
-
-.stats {
-  display: flex;
-  gap: 16px;
-}
-
-.stats span {
+.meta-info {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #666;
+  gap: 8px;
+  font-size: 13px;
+  color: #86868b;
+
+  .author {
+    color: #1d1d1f;
+    font-weight: 500;
+  }
+
+  .dot {
+    color: #86868b;
+  }
 }
 </style> 
