@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspiration.backend.mapper.UserInteractionMapper">
+    <resultMap id="interactionMap" type="com.inspiration.backend.entity.UserInteraction">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="inspirationId" column="inspiration_id"/>
+        <result property="type" column="type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_interactions (user_id, inspiration_id, type)
+        VALUES (#{userId}, #{inspirationId}, #{type})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM user_interactions 
+        WHERE user_id = #{userId} 
+        AND inspiration_id = #{inspirationId} 
+        AND type = #{type}
+    </delete>
+
+    <select id="findByUserId" resultMap="interactionMap">
+        SELECT * FROM user_interactions
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findByInspirationId" resultMap="interactionMap">
+        SELECT * FROM user_interactions
+        WHERE inspiration_id = #{inspirationId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="exists" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM user_interactions
+            WHERE user_id = #{userId}
+            AND inspiration_id = #{inspirationId}
+            AND type = #{type}
+        )
+    </select>
+</mapper> 

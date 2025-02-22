@@ -5,10 +5,10 @@ module.exports = defineConfig({
   css: {
     loaderOptions: {
       sass: {
-        implementation: require('sass'),
-        sassOptions: {
-          fiber: false
-        }
+        additionalData: `
+          @use "sass:math";
+          @import "@/styles/variables.scss";
+        `
       }
     }
   },

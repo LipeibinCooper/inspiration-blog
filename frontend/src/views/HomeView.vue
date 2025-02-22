@@ -1,19 +1,45 @@
 <template>
-  <div class="home-container">
+  <div class="home-container" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
     <!-- 左侧：我的灵感树 -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ collapsed: isSidebarCollapsed }">
       <div class="sidebar-header">
-        <h2>我的灵感树</h2>
+        <div class="header-title">
+          <div class="title-wrapper">
+            <!-- 树形图标 -->
+            <div class="tree-icon">
+              <el-icon><Connection /></el-icon>
+            </div>
+            <!-- 标题文字 -->
+            <h2 class="text-title">我的灵感树</h2>
+          </div>
+          <span class="subtitle" v-if="!isSidebarCollapsed">
+            {{ inspirationStore.myInspirations.length }} 个灵感
+          </span>
+        </div>
         <el-button 
           type="primary" 
-          plain
-          circle
+          class="create-btn"
           @click="showCreateDialog = true"
+          v-if="!isSidebarCollapsed"
         >
           <el-icon><Plus /></el-icon>
+          创建灵感
         </el-button>
       </div>
-      <div class="inspiration-list">
+
+      <!-- 替换折叠按钮为突起设计 -->
+      <div 
+        class="sidebar-tab"
+        @click="toggleSidebar"
+        :title="isSidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+      >
+        <el-icon>
+          <ArrowLeft v-if="!isSidebarCollapsed" />
+          <ArrowRight v-else />
+        </el-icon>
+      </div>
+
+      <div class="inspiration-list" v-if="!isSidebarCollapsed">
         <div
           v-for="note in inspirationStore.myInspirations"
           :key="note.id"
@@ -21,8 +47,16 @@
           :class="{ active: note.id === currentId }"
           @click="goToDetail(note.id)"
         >
-          <span class="title">{{ note.title }}</span>
-          <el-tag v-if="!note.isPublic" size="small" type="info">私密</el-tag>
+          <div class="item-content">
+            <div class="item-main">
+              <h3 class="title" :title="note.title">{{ truncateTitle(note.title) }}</h3>
+              <p class="preview">{{ truncateContent(note.content) }}</p>
+            </div>
+            <div class="item-meta">
+              <span class="time">{{ formatTime(note.createdAt) }}</span>
+              <el-tag v-if="!note.isPublic" size="small" type="info" effect="light">私密</el-tag>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
@@ -33,10 +67,32 @@
         <header class="section-header">
           <h1>发现灵感</h1>
           <p class="subtitle">探索他人的思维火花，激发你的创意灵感</p>
+          
+          <!-- 添加搜索区域 -->
+          <div class="search-section">
+            <div class="search-box">
+              <el-input
+                v-model="searchQuery"
+                placeholder="搜索标题或作者..."
+                clearable
+                :prefix-icon="Search"
+                @input="handleSearch"
+                class="search-input"
+              />
+            </div>
+            
+            <!-- 搜索结果统计 -->
+            <div class="search-stats" v-if="searchQuery">
+              找到 {{ filteredInspirations.length }} 条相关灵感
+            </div>
+          </div>
         </header>
 
-        <!-- 只保留这一个 InspirationList -->
-        <inspiration-list :inspirations="inspirationStore.recommendedInspirations" />
+        <!-- 使用过滤后的灵感列表 -->
+        <inspiration-list 
+          :inspirations="filteredInspirations"
+          :isSidebarCollapsed="isSidebarCollapsed"
+        />
       </div>
     </main>
 
@@ -44,76 +100,91 @@
     <el-dialog
       v-model="showCreateDialog"
       title="创建灵感树"
-      width="600px"
+      width="640px"
       :close-on-click-modal="false"
-      class="create-dialog">
+      class="create-dialog"
+    >
       <div class="dialog-content">
         <el-form 
           :model="createForm" 
           :rules="rules"
           ref="createFormRef"
           label-position="top"
-          class="create-form">
+          class="create-form"
+        >
           <el-form-item 
             label="种子灵感" 
             prop="title"
-            class="form-item">
+            class="form-item"
+          >
             <div class="form-item-hint">这是你灵感树的核心节点，后续可以基于它延伸更多想法</div>
             <el-input
               v-model="createForm.title"
               type="text"
               placeholder="输入灵感树的核心想法"
-              maxlength="50"
+              maxlength="15"
               show-word-limit
+              size="large"
             />
           </el-form-item>
           
           <el-form-item 
             label="描述（选填）" 
-            class="form-item">
+            class="form-item"
+          >
             <div class="form-item-hint">补充说明你的想法，让它更容易被理解</div>
             <el-input
               v-model="createForm.content"
               type="textarea"
-              :rows="4"
+              :rows="5"
               placeholder="补充说明你的想法..."
-              maxlength="500"
+              maxlength="200"
               show-word-limit
             />
           </el-form-item>
 
           <el-form-item label="可见性" class="form-item">
-            <el-radio-group v-model="createForm.isPublic" class="visibility-group">
-              <div class="visibility-options">
-                <el-radio :label="true" class="visibility-option">
-                  <template #default>
-                    <div class="visibility-label">
-                      <span class="visibility-title">公开</span>
-                      <span class="visibility-desc">所有人都可以看到这棵灵感树</span>
-                    </div>
-                  </template>
-                </el-radio>
-                <el-radio :label="false" class="visibility-option">
-                  <template #default>
-                    <div class="visibility-label">
-                      <span class="visibility-title">私密</span>
-                      <span class="visibility-desc">只有你自己可以看到这棵灵感树</span>
-                    </div>
-                  </template>
-                </el-radio>
+            <div class="visibility-options">
+              <div 
+                class="visibility-option" 
+                :class="{ active: createForm.isPublic }"
+                @click="createForm.isPublic = true"
+              >
+                <div class="icon-wrapper">
+                  <el-icon><View /></el-icon>
+                </div>
+                <div class="option-content">
+                  <span class="option-title">公开</span>
+                  <span class="option-desc">所有人可见</span>
+                </div>
               </div>
-            </el-radio-group>
+              <div 
+                class="visibility-option" 
+                :class="{ active: !createForm.isPublic }"
+                @click="createForm.isPublic = false"
+              >
+                <div class="icon-wrapper">
+                  <el-icon><Lock /></el-icon>
+                </div>
+                <div class="option-content">
+                  <span class="option-title">私密</span>
+                  <span class="option-desc">仅自己可见</span>
+                </div>
+              </div>
+            </div>
           </el-form-item>
         </el-form>
       </div>
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="showCreateDialog = false">取消</el-button>
+          <el-button @click="showCreateDialog = false" size="large">取消</el-button>
           <el-button 
             type="primary" 
             :loading="creating"
-            @click="handleCreate">
+            @click="handleCreate"
+            size="large"
+          >
             创建灵感树
           </el-button>
         </div>
@@ -123,12 +194,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useInspirationStore } from "@/store/useInspirationStore";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Search, ArrowLeft, ArrowRight, Connection, View, Lock } from '@element-plus/icons-vue';
 import InspirationList from "@/components/InspirationList.vue";
 
 const router = useRouter();
@@ -136,6 +207,10 @@ const inspirationStore = useInspirationStore();
 const createFormRef = ref<FormInstance>();
 const showCreateDialog = ref(false);
 const creating = ref(false);
+
+const searchQuery = ref('');
+
+const isSidebarCollapsed = ref(false);
 
 // 初始化表单数据
 const createForm = ref({
@@ -148,7 +223,7 @@ const createForm = ref({
 const rules = {
   title: [
     { required: true, message: '请输入种子灵感', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+    { min: 2, max: 15, message: '长度在 2 到 15 个字符', trigger: 'blur' }
   ]
 };
 
@@ -160,17 +235,25 @@ const handleCreate = async () => {
     creating.value = true;
     await createFormRef.value.validate();
     
-    const newId = await inspirationStore.addInspiration({
+    console.log('准备创建灵感:', {
+      title: createForm.value.title,
+      content: createForm.value.content,
+      isPublic: createForm.value.isPublic
+    });
+    
+    const newId = await inspirationStore.createInspiration({
       title: createForm.value.title,
       content: createForm.value.content,
       isPublic: createForm.value.isPublic
     });
 
+    console.log('创建成功，新灵感ID:', newId);
     showCreateDialog.value = false;
     createForm.value = { title: "", content: "", isPublic: true };
     ElMessage.success("灵感创建成功");
     router.push(`/inspiration/${newId}`);
   } catch (error) {
+    console.error("创建失败，错误详情:", error);
     ElMessage.error("创建失败");
   } finally {
     creating.value = false;
@@ -181,6 +264,42 @@ const handleCreate = async () => {
 const goToDetail = (id: number) => {
   router.push(`/inspiration/${id}`);
 };
+
+// 添加标题截断函数
+const truncateTitle = (title: string) => {
+  return title.length > 10 ? title.substring(0, 10) + '...' : title;
+};
+
+// 添加内容截断函数
+const truncateContent = (content: string) => {
+  return content ? (content.length > 30 ? content.substring(0, 30) + '...' : content) : '暂无描述';
+};
+
+// 格式化时间
+const formatTime = (time: string) => {
+  return new Date(time).toLocaleDateString();
+};
+
+// 过滤灵感列表
+const filteredInspirations = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return inspirationStore.recommendedInspirations;
+
+  return inspirationStore.recommendedInspirations.filter(inspiration => {
+    // 同时搜索标题和作者
+    return inspiration.title.toLowerCase().includes(query) || 
+           inspiration.author.name.toLowerCase().includes(query);
+  });
+});
+
+// 处理搜索输入
+const handleSearch = () => {
+  // 这里可以添加搜索相关的逻辑
+};
+
+const toggleSidebar = () => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+};
 </script>
 
 <style scoped lang="scss">
@@ -188,58 +307,248 @@ const goToDetail = (id: number) => {
   display: flex;
   min-height: 100vh;
   background-color: #fff;
+  
+  // 添加过渡效果
+  .inspiration-grid {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  // 侧边栏收起时的样式
+  &.sidebar-collapsed {
+    .inspiration-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    }
+  }
 }
 
 /* 左侧边栏 */
 .sidebar {
-  width: 320px;
-  background: #fbfbfd;
-  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  width: 360px;
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  // 移除旧的折叠按钮样式
+  .collapse-btn {
+    display: none;
+  }
+  
+  // 添加新的突起标签样式
+  .sidebar-tab {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 70px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s ease;
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.03);
+    
+    &:hover {
+      background: var(--el-color-primary-light-9);
+      color: var(--el-color-primary);
+    }
+    
+    .el-icon {
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  &.collapsed {
+    width: 70px;
+    
+    .sidebar-tab {
+      background: var(--el-color-primary-light-9);
+      color: var(--el-color-primary);
+    }
+  }
   
   .sidebar-header {
-    padding: 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.8);
+    padding: 24px 20px;
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     position: sticky;
     top: 0;
     z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
-    h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #1d1d1f;
-      letter-spacing: -0.02em;
+    .header-title {
+      margin-bottom: 16px;
+      
+      .title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+        
+        .tree-icon {
+          width: 44px;
+          height: 44px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--el-color-primary);
+          color: white;
+          border-radius: 16px;
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          margin-right: 8px;
+          box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.2);
+          transform: translateX(-5px);
+          
+          .el-icon {
+            font-size: 28px;  // 增大图标尺寸
+          }
+          
+          &:hover {
+            transform: translateY(-2px) translateX(-5px);
+            box-shadow: 0 6px 16px rgba(var(--el-color-primary-rgb), 0.3);
+          }
+        }
+        
+        .text-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1d1d1f;
+          margin: 0;
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          white-space: nowrap;
+          overflow: hidden;
+        }
+      }
+      
+      .subtitle {
+        font-size: 13px;
+        color: #86868b;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+    
+    .create-btn {
+      width: 100%;
+      height: 40px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      
+      .el-icon {
+        margin-right: 4px;
+        font-size: 16px;
+        transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      span {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
     }
   }
 }
 
 .inspiration-list {
+  flex: 1;
   padding: 16px;
+  overflow-y: auto;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  &.fade-enter-active,
+  &.fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
+  
+  &.fade-enter-from,
+  &.fade-leave-to {
+    opacity: 0;
+  }
 }
 
 .inspiration-item {
-  padding: 16px 20px;
+  padding: 16px;
   margin-bottom: 8px;
   border-radius: 12px;
-  background: transparent;
+  background: #fff;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   
   &:hover {
-    background: rgba(0, 0, 0, 0.02);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.08);
   }
   
   &.active {
-    background: rgba(0, 0, 0, 0.03);
+    background: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary-light-5);
   }
-  
-  .title {
-    font-size: 15px;
-    color: #1d1d1f;
-    letter-spacing: -0.01em;
+
+  .item-content {
+    .item-main {
+      margin-bottom: 12px;
+      
+      .title {
+        font-size: 15px;
+        font-weight: 500;
+        color: #1d1d1f;
+        margin: 0 0 4px;
+        line-height: 1.4;
+      }
+      
+      .preview {
+        font-size: 13px;
+        color: #86868b;
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+    
+    .item-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .time {
+        font-size: 12px;
+        color: #999;
+      }
+      
+      .el-tag {
+        border: none;
+        font-weight: 500;
+      }
+    }
   }
 }
 
@@ -248,11 +557,15 @@ const goToDetail = (id: number) => {
   flex: 1;
   padding: 64px 40px;
   background: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 20px;
 }
 
 .content-wrapper {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 .section-header {
@@ -280,7 +593,7 @@ const goToDetail = (id: number) => {
 .inspiration-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 32px;
+  gap: 24px;  // 减小间距以适应更多卡片
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -361,24 +674,31 @@ const goToDetail = (id: number) => {
 /* 创建灵感树对话框样式 */
 .create-dialog {
   :deep(.el-dialog) {
-    border-radius: 20px;
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     
     .el-dialog__header {
+      margin: 0;
       padding: 32px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       
       .el-dialog__title {
         font-size: 24px;
         font-weight: 600;
         color: #1d1d1f;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.01em;
       }
     }
     
     .el-dialog__body {
-      padding: 40px;
+      padding: 32px;
+    }
+
+    .el-dialog__footer {
+      padding: 24px 32px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      background: #f9f9f9;
     }
   }
 
@@ -386,41 +706,197 @@ const goToDetail = (id: number) => {
     margin-bottom: 32px;
     
     :deep(.el-form-item__label) {
+      padding-bottom: 12px;
       font-size: 16px;
-      color: #1d1d1f;
       font-weight: 500;
-      letter-spacing: -0.01em;
+      color: #1d1d1f;
     }
     
     .form-item-hint {
       font-size: 14px;
       color: #86868b;
       margin-bottom: 12px;
-      letter-spacing: -0.01em;
+    }
+
+    :deep(.el-input__wrapper) {
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+      padding: 4px 12px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        box-shadow: 0 0 0 1px var(--el-color-primary);
+      }
+      
+      &.is-focus {
+        box-shadow: 0 0 0 2px var(--el-color-primary-light-5);
+      }
+    }
+
+    :deep(.el-textarea__inner) {
+      padding: 12px;
+      font-size: 15px;
+      line-height: 1.6;
     }
   }
 
   .visibility-options {
     display: flex;
-    gap: 16px;
+    gap: 24px;  // 增加间距
+    
+    .visibility-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;  // 减小内边距
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        border-color: var(--el-color-primary);
+        background: var(--el-color-primary-light-9);
+      }
+      
+      &.active {
+        border-color: var(--el-color-primary);
+        background: var(--el-color-primary-light-9);
+        
+        .icon-wrapper {
+          background: var(--el-color-primary);
+          color: white;
+          transform: scale(1.1);
+        }
+      }
+      
+      .icon-wrapper {
+        width: 36px;  // 减小图标容器尺寸
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        
+        .el-icon {
+          font-size: 18px;  // 减小图标尺寸
+        }
+      }
+      
+      .option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;  // 减小标题和描述的间距
+        
+        .option-title {
+          font-size: 15px;  // 减小标题字号
+          font-weight: 500;
+          color: #1d1d1f;
+        }
+        
+        .option-desc {
+          font-size: 12px;  // 减小描述字号
+          color: #86868b;
+        }
+      }
+    }
   }
 
-  .visibility-option {
-    flex: 1;
-    padding: 24px;
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+
+    .el-button {
+      padding: 12px 24px;
+      font-size: 15px;
+      border-radius: 10px;
+      min-width: 100px;
+    }
+  }
+}
+
+.search-section {
+  max-width: 800px;
+  margin: 32px auto 0;
+  
+  .search-box {
+    :deep(.el-input) {
+      --el-input-height: 48px;
+      
+      .el-input__wrapper {
+        border-radius: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+        padding: 0 20px;
+        
+        &:hover {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        &.is-focus {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        .el-input__inner {
+          font-size: 15px;
+          
+          &::placeholder {
+            color: #999;
+          }
+        }
+        
+        .el-input__prefix {
+          margin-right: 8px;
+          
+          .el-icon {
+            font-size: 18px;
+            color: #999;
+          }
+        }
+      }
+    }
+  }
+  
+  .search-stats {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+}
+
+// 调整灵感列表的上边距
+.inspiration-list {
+  margin-top: 48px;
+}
+
+:deep(.el-dropdown) {
+  .el-dropdown-link {
+    border: none !important;  // 移除边框
+    padding: 0;  // 移除内边距
+    box-shadow: none !important;  // 移除阴影
+    background: transparent !important;  // 移除背景色
     
     &:hover {
-      border-color: #06c;
-      background: rgba(0, 102, 204, 0.02);
+      background: transparent !important;  // 悬浮时也保持透明背景
     }
-    
-    &.is-checked {
-      border-color: #06c;
-      background: rgba(0, 102, 204, 0.05);
-    }
+  }
+}
+
+// 如果还需要保持用户信息的布局，可以添加以下样式
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  
+  .username {
+    font-size: 14px;
+    color: #1d1d1f;
+    font-weight: 500;
   }
 }
 </style>

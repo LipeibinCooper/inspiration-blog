@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "@/store/useAuthStore";
+import UserProfile from '@/views/UserProfile.vue'
 
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
@@ -60,6 +61,14 @@ const routes: Array<RouteRecordRaw> = [
     ],
     props: true,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/user/:id',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: {
+      requiresAuth: true
+    }
   }
 ];
 

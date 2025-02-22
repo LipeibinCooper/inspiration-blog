@@ -38,7 +38,8 @@ export const useInspirationStore = defineStore("inspiration", () => {
       createdAt: new Date().toISOString(),
       userId: 1,
       username: "admin",
-      inspirationId: 1
+      inspirationId: 1,
+      inspirationTitle: "Vue 3 + TypeScript 开发体验"
     },
     {
       id: 2,
@@ -46,7 +47,8 @@ export const useInspirationStore = defineStore("inspiration", () => {
       createdAt: new Date().toISOString(),
       userId: 2,
       username: "test",
-      inspirationId: 1
+      inspirationId: 1,
+      inspirationTitle: "Vue 3 + TypeScript 开发体验"
     }
   ]);
 
@@ -86,7 +88,7 @@ export const useInspirationStore = defineStore("inspiration", () => {
       author: {
         id: currentUser.id,
         name: currentUser.username,
-        avatar: currentUser.avatar || ''
+        avatar: currentUser.avatar || undefined
       }
     };
 

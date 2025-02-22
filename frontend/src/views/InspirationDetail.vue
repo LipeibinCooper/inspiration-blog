@@ -12,6 +12,25 @@
 
     <!-- 右侧：互动区域 -->
     <div class="interaction-section">
+      <!-- 创建者信息添加点击事件 -->
+      <div class="creator-info" @click="goToUserProfile(inspiration?.author?.id)" role="button">
+        <el-avatar 
+          :size="48" 
+          :src="inspiration?.author?.avatar"
+          class="creator-avatar"
+        />
+        <div class="creator-meta">
+          <span class="creator-name">{{ inspiration?.author?.name }}</span>
+          <span class="create-time">{{ formatTime(inspiration?.createdAt) }}</span>
+        </div>
+      </div>
+
+      <!-- 灵感描述区域 -->
+      <div class="description-section">
+        <h3>灵感描述</h3>
+        <p class="description-content">{{ inspiration.content || '暂无描述' }}</p>
+      </div>
+
       <!-- 互动按钮 -->
       <div class="interaction-buttons">
         <el-button 
@@ -89,12 +108,8 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
-import { 
-  StarFilled, 
-  Pointer,
-  Delete
-} from "@element-plus/icons-vue";
+import { useRoute, useRouter } from "vue-router";
+import { StarFilled, Pointer, Delete } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { useInspirationStore } from "@/store/useInspirationStore";
 import { useInteractionStore } from "@/store/useInteractionStore";
@@ -103,13 +118,15 @@ import InspirationTree from "@/components/InspirationTree.vue";
 import type { InspirationNode } from "@/types/inspiration-tree";
 import type { CreateNodeDto } from "@/types/inspiration-tree";
 import { useAuthStore } from "@/store/useAuthStore";
-import CommentList from '@/components/CommentList.vue';
+import { useBrowseHistoryStore } from "@/store/useBrowseHistoryStore";
 
 const route = useRoute();
+const router = useRouter();
 const inspirationStore = useInspirationStore();
 const interactionStore = useInteractionStore();
 const treeStore = useInspirationTreeStore();
 const authStore = useAuthStore();
+const browseHistoryStore = useBrowseHistoryStore();
 
 const newComment = ref("");
 const submitting = ref(false);
@@ -163,6 +180,8 @@ const handleCollect = () => {
 const handleDeleteComment = async (commentId: number) => {
   try {
     await inspirationStore.deleteComment(commentId);
+    // 使用 interactionStore 的删除方法
+    interactionStore.deleteComment(commentId);
     ElMessage.success('评论已删除');
   } catch (error) {
     console.error('删除评论失败:', error);
@@ -170,23 +189,19 @@ const handleDeleteComment = async (commentId: number) => {
   }
 };
 
-// 修改添加评论的方法，添加头像
+// 修改添加评论的方法
 const handleAddComment = async () => {
-  if (!newComment.value.trim()) return;
+  if (!newComment.value.trim() || !inspiration.value) return;
   
   try {
     submitting.value = true;
-    const comment = {
-      id: Date.now(),
-      content: newComment.value,
-      createdAt: new Date().toISOString(),
-      userId: authStore.userInfo?.id || 0,
-      username: authStore.userInfo?.username || '未知用户',
-      avatar: authStore.userInfo?.avatar, // 添加头像
-      inspirationId: Number(route.params.id)
-    };
+    // 直接使用 interactionStore 的 addComment 方法
+    await interactionStore.addComment(
+      newComment.value,
+      inspiration.value.id,
+      inspiration.value.title
+    );
     
-    await inspirationStore.addComment(comment);
     newComment.value = '';
     ElMessage.success('评论发表成功');
   } catch (error) {
@@ -285,6 +300,30 @@ const handleDelete = async (id: number) => {
     ElMessage.error('删除失败');
   }
 };
+
+// 在 watch 或 onMounted 中添加浏览记录
+watch(() => inspiration.value, (newInspiration) => {
+  if (newInspiration) {
+    browseHistoryStore.addHistory(newInspiration);
+  }
+}, { immediate: true });
+
+// 修改跳转到用户主页的方法
+const goToUserProfile = (userId?: number) => {
+  if (!userId) return;
+  
+  // 如果是当前用户，跳转到个人主页
+  if (userId === authStore.userInfo?.id) {
+    router.push({
+      name: 'profile',
+      params: { id: userId },
+      query: { tab: 'inspirations' }  // 默认显示灵感列表标签
+    });
+  } else {
+    // 如果是其他用户，跳转到用户主页
+    router.push(`/user/${userId}`);
+  }
+};
 </script>
 
 <style scoped lang="scss">
@@ -292,6 +331,7 @@ const handleDelete = async (id: number) => {
   display: flex;
   height: calc(100vh - 64px); // 减去顶部导航栏高度
   overflow: hidden; // 防止整个页面滚动
+  padding: 40px;
 }
 
 .tree-section {
@@ -308,6 +348,64 @@ const handleDelete = async (id: number) => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  
+  .creator-info {
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;  // 添加鼠标指针样式
+    transition: all 0.2s ease;
+    
+    &:hover {
+      opacity: 0.8;  // 添加悬浮效果
+    }
+    
+    .creator-avatar {
+      border: 2px solid #fff;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .creator-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      
+      .creator-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1d1d1f;
+      }
+      
+      .create-time {
+        font-size: 14px;
+        color: #86868b;
+      }
+    }
+  }
+  
+  .description-section {
+    margin: 24px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin: 0 0 12px;
+    }
+    
+    .description-content {
+      font-size: 14px;
+      color: #6e6e73;
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  }
 }
 
 .interaction-buttons {

@@ -5,6 +5,7 @@ export interface User {
   email: string;
   avatar?: string;
   token?: string;
+  bio?: string;
 }
 
 export interface LoginForm {
@@ -62,6 +63,7 @@ export interface Comment {
   username: string;
   avatar?: string;
   inspirationId: number;
+  inspirationTitle: string;
 }
 
 interface Author {

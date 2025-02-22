@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/inspiration_test_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 88888888
+  redis:
+    host: localhost
+    port: 6379
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    accessKeyId: test-key-id
+    accessKeySecret: test-key-secret
+    bucketName: test-bucket
+    urlPrefix: https://test-bucket.oss-cn-hangzhou.aliyuncs.com/ 

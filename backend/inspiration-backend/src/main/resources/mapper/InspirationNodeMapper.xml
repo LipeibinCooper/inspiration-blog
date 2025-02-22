@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspiration.backend.mapper.InspirationNodeMapper">
+    <resultMap id="nodeMap" type="com.inspiration.backend.entity.InspirationNode">
+        <id property="id" column="id"/>
+        <result property="inspirationId" column="inspiration_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <collection property="imageUrls" ofType="string">
+            <result column="image_url"/>
+        </collection>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+    </resultMap>
+
+    <sql id="baseJoin">
+        LEFT JOIN node_images ni ON n.id = ni.node_id
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inspiration_nodes (inspiration_id, parent_id, content)
+        VALUES (#{inspirationId}, #{parentId}, #{content})
+    </insert>
+
+    <select id="findById" resultMap="nodeMap">
+        SELECT n.*, ni.image_url,
+               (SELECT image_url FROM node_images 
+                WHERE node_id = n.id AND is_thumbnail = true LIMIT 1) as thumbnail_url
+        FROM inspiration_nodes n
+        <include refid="baseJoin"/>
+        WHERE n.id = #{id}
+    </select>
+
+    <select id="findByInspirationId" resultMap="nodeMap">
+        SELECT n.*, ni.image_url,
+               (SELECT image_url FROM node_images 
+                WHERE node_id = n.id AND is_thumbnail = true LIMIT 1) as thumbnail_url
+        FROM inspiration_nodes n
+        <include refid="baseJoin"/>
+        WHERE n.inspiration_id = #{inspirationId}
+        ORDER BY n.created_at
+    </select>
+
+    <select id="findByParentId" resultMap="nodeMap">
+        SELECT n.*, ni.image_url,
+               (SELECT image_url FROM node_images 
+                WHERE node_id = n.id AND is_thumbnail = true LIMIT 1) as thumbnail_url
+        FROM inspiration_nodes n
+        <include refid="baseJoin"/>
+        WHERE n.parent_id = #{parentId}
+        ORDER BY n.created_at
+    </select>
+
+    <update id="update">
+        UPDATE inspiration_nodes
+        SET content = #{content},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM inspiration_nodes WHERE id = #{id}
+    </delete>
+</mapper> 

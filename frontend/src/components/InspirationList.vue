@@ -1,18 +1,25 @@
 <template>
-  <div class="inspiration-list">
+  <div class="inspiration-list" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
     <el-card 
-      v-for="note in processedInspirations" 
-      :key="note.id" 
+      v-for="inspiration in processedInspirations" 
+      :key="inspiration.id" 
       class="inspiration-card"
-      @click="router.push(`/inspiration/${note.id}`)"
+      @click="router.push(`/inspiration/${inspiration.id}`)"
+      :body-style="{ padding: '16px', height: '100%' }"
     >
       <div class="card-content">
-        <h3 class="title">{{ note.title }}</h3>
-        <p class="content">{{ note.content.substring(0, 80) }}...</p>
+        <div class="card-main">
+          <h3 class="title" :title="inspiration.title">{{ inspiration.title }}</h3>
+          <p class="content" :title="inspiration.content">
+            {{ truncateContent(inspiration.content || '暂无内容') }}
+          </p>
+        </div>
         <div class="meta-info">
-          <span class="author">{{ note.author.name }}</span>
-          <span class="dot">·</span>
-          <span class="time">大约 2 小时前</span>
+          <span class="author">{{ inspiration.author?.name || '未知用户' }}</span>
+          <div class="collections">
+            <el-icon><StarFilled /></el-icon>
+            <span>{{ inspiration.collections || 0 }}</span>
+          </div>
         </div>
       </div>
     </el-card>
@@ -21,13 +28,14 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Star, ChatRound, Pointer } from "@element-plus/icons-vue";
+import { StarFilled } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { Inspiration } from "@/types/inspiration";
 
 const props = defineProps<{
-  inspirations: Inspiration[]
+  inspirations: Inspiration[];
+  isSidebarCollapsed?: boolean;
 }>();
 
 const router = useRouter();
@@ -49,65 +57,102 @@ const processedInspirations = computed(() => {
     return inspiration;
   });
 });
+
+const truncateContent = (content: string) => {
+  return content.length > 30 ? content.substring(0, 30) + '...' : content;
+};
 </script>
 
 <style scoped lang="scss">
 .inspiration-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
+  width: 100%;
+  transition: all 0.4s cubic-bezier(0.645, 0.045, 0.355, 1);
+  
+  &.sidebar-collapsed {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .inspiration-card {
+  width: 100%;
+  height: 160px;
   border-radius: 12px;
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s ease;
   
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
-
-  :deep(.el-card__body) {
-    padding: 20px;
-  }
 }
 
 .card-content {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.content {
-  font-size: 14px;
-  color: #6e6e73;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.meta-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #86868b;
-
-  .author {
-    color: #1d1d1f;
-    font-weight: 500;
+  
+  .card-main {
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 16px;
+    
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin: 0;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .content {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: #6e6e73;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
   }
-
-  .dot {
-    color: #86868b;
+  
+  .meta-info {
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin: 0 -16px;
+    padding: 4px 16px 15px;
+    
+    .author {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1d1d1f;
+    }
+    
+    .collections {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      .el-icon {
+        font-size: 16px;
+        color: #e6a23c;
+      }
+      
+      span {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1d1d1f;
+      }
+    }
   }
 }
 </style> 

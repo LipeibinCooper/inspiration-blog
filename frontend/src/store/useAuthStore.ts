@@ -10,6 +10,7 @@ interface RegisteredUser {
   password: string;
   email: string;
   avatar?: string;
+  bio?: string;  // 添加可选的 bio 字段
 }
 
 export const useAuthStore = defineStore("auth", () => {
@@ -23,14 +24,16 @@ export const useAuthStore = defineStore("auth", () => {
       password: "888888",
       email: "admin@example.com",
       id: 1,
-      avatar: undefined
+      avatar: undefined,
+      bio: "管理员账号"  // 可选
     },
     {
       username: "test",
       password: "888888",
       email: "test@example.com",
       id: 2,
-      avatar: undefined
+      avatar: undefined,
+      bio: "测试账号"  // 可选
     }
   ]);
 
@@ -47,35 +50,32 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   // 更新用户信息
-  const updateUserInfo = (info: Partial<User>) => {
+  const updateUserInfo = async (updates: Partial<User>) => {
     if (!userInfo.value) return;
 
+    const userIndex = registeredUsers.value.findIndex(u => u.id === userInfo.value?.id);
+    if (userIndex === -1) return;
+
+    // 更新用户信息
+    registeredUsers.value[userIndex] = {
+      ...registeredUsers.value[userIndex],
+      ...updates
+    };
+
     // 更新当前用户信息
-    const updatedUserInfo = { ...userInfo.value, ...info };
-    userInfo.value = updatedUserInfo;
-
-    // 更新注册用户列表中的信息
-    const userIndex = registeredUsers.value.findIndex(u => u.id === userInfo.value.id);
-    if (userIndex !== -1) {
-      const updatedUser = {
-        ...registeredUsers.value[userIndex],
-        ...info,
-        password: registeredUsers.value[userIndex].password // 保持密码不变
-      };
-      registeredUsers.value[userIndex] = updatedUser;
-
-      // 强制更新数组引用
-      registeredUsers.value = [...registeredUsers.value];
-    }
+    userInfo.value = {
+      ...userInfo.value,
+      ...updates
+    };
 
     // 保存到 localStorage
-    setUser(updatedUserInfo);
+    setUser(userInfo.value);
 
     // 触发更新事件
     window.dispatchEvent(new CustomEvent('user-info-updated', {
       detail: {
-        userId: updatedUserInfo.id,
-        updates: info
+        userId: userInfo.value.id,
+        updates: updates
       }
     }));
   };
@@ -95,7 +95,8 @@ export const useAuthStore = defineStore("auth", () => {
       id: user.id,
       username: user.username,
       email: user.email,
-      avatar: user.avatar
+      avatar: user.avatar,
+      bio: user.bio
     };
 
     // 生成并保存 token
@@ -153,6 +154,18 @@ export const useAuthStore = defineStore("auth", () => {
     }
   };
 
+  // 更新个人简介的方法
+  const updateUserBio = async (bio: string) => {
+    try {
+      // 直接调用 updateUserInfo 方法更新简介
+      await updateUserInfo({ bio });
+      return true;
+    } catch (error) {
+      console.error('更新个人简介失败:', error);
+      throw error;
+    }
+  };
+
   return {
     userInfo,
     token,
@@ -164,6 +177,7 @@ export const useAuthStore = defineStore("auth", () => {
     updateUserInfo,
     updatePassword,
     updateAvatar,
+    updateUserBio,
     registeredUsers
   };
 }, {
