@@ -1,5 +1,6 @@
 package com.inspiration.backend.controller;
 
+
 import com.inspiration.backend.dto.request.CommentRequest;
 import com.inspiration.backend.entity.Comment;
 import com.inspiration.backend.model.Result;
@@ -7,6 +8,7 @@ import com.inspiration.backend.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class CommentController extends BaseController {
 
     private final CommentService commentService;

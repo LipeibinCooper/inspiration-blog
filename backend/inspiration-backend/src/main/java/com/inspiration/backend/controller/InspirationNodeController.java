@@ -4,9 +4,11 @@ import com.inspiration.backend.entity.InspirationNode;
 import com.inspiration.backend.model.Result;
 import com.inspiration.backend.service.InspirationNodeService;
 import com.inspiration.backend.service.FileService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/nodes")
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class InspirationNodeController extends BaseController {
 
     private final InspirationNodeService nodeService;

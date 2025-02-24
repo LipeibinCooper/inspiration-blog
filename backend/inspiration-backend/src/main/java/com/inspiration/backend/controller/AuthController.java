@@ -3,13 +3,17 @@ package com.inspiration.backend.controller;
 import com.inspiration.backend.dto.LoginRequest;
 import com.inspiration.backend.dto.RegisterRequest;
 import com.inspiration.backend.dto.UserDTO;
+
 import com.inspiration.backend.exception.BusinessException;
+
 import com.inspiration.backend.model.Result;
 import com.inspiration.backend.security.JwtTokenProvider;
 import com.inspiration.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class AuthController extends BaseController {
 
     private final UserService userService;

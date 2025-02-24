@@ -1,0 +1,87 @@
+@use 'variables' as *;
+
+// 全局样式
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fa;
+}
+
+// 通用容器样式
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-base;
+}
+
+// 卡片样式
+.card {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  padding: $spacing-base;
+}
+
+// 移除 el-dropdown 的边框和背景
+.el-dropdown {
+  .el-dropdown-link,
+  .el-button.el-dropdown-link {
+    border: 0 none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    --el-button-bg-color: transparent !important;
+    --el-button-border-color: transparent !important;
+    --el-button-hover-bg-color: transparent !important;
+    --el-button-hover-border-color: transparent !important;
+    --el-button-active-bg-color: transparent !important;
+    --el-button-active-border-color: transparent !important;
+    
+    &:hover, &:focus, &:active {
+      border: 0 none !important;
+      background-color: transparent !important;
+      --el-button-hover-bg-color: transparent !important;
+      --el-button-hover-border-color: transparent !important;
+    }
+  }
+  
+  .el-dropdown-menu {
+    .el-dropdown-menu__item {
+      &:hover {
+        background: var(--el-dropdown-menuItem-hover-fill);
+      }
+    }
+    margin-top: 8px !important;
+  }
+}
+
+// 用户信息样式
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  
+  .el-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+  }
+  
+  .username {
+    font-size: 16px;
+    color: #1d1d1f;
+    font-weight: 500;
+  }
+}
+
+// 额外添加的全局覆盖样式
+:root {
+  --el-button-hover-border-color: transparent !important;
+  --el-button-hover-bg-color: transparent !important;
+} 

@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "types": [
+      "webpack-env",
+      "d3"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strictNullChecks": false,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

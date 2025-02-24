@@ -7,6 +7,7 @@ import com.inspiration.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class UserController extends BaseController {
 
     private final UserService userService;

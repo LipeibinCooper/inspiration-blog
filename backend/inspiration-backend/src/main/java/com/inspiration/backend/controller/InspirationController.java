@@ -8,6 +8,7 @@ import com.inspiration.backend.service.UserInteractionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inspirations")
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class InspirationController extends BaseController {
 
     private final InspirationService inspirationService;

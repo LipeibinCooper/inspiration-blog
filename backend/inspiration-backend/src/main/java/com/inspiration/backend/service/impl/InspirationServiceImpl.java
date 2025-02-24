@@ -5,7 +5,9 @@ import com.inspiration.backend.mapper.InspirationMapper;
 import com.inspiration.backend.service.InspirationService;
 import com.inspiration.backend.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -17,7 +19,9 @@ import com.inspiration.backend.service.MessageProducer;
 import java.time.LocalDateTime;
 
 @Service
+
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class InspirationServiceImpl implements InspirationService {
     
     private final InspirationMapper inspirationMapper;

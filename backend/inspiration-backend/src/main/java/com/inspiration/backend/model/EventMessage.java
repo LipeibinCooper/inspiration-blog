@@ -1,5 +1,6 @@
 package com.inspiration.backend.model;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
@@ -10,10 +11,12 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
+
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventMessage implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private EventType type;
     private Long userId;
     private Long targetId;

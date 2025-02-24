@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class ScheduledTaskService {
 
     private final InspirationMapper inspirationMapper;

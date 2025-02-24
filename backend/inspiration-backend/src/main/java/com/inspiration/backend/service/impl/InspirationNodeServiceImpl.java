@@ -7,7 +7,9 @@ import com.inspiration.backend.mapper.NodeImageMapper;
 import com.inspiration.backend.service.InspirationNodeService;
 import com.inspiration.backend.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
@@ -15,7 +17,9 @@ import org.springframework.cache.annotation.Cacheable;
 import java.util.List;
 
 @Service
+
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class InspirationNodeServiceImpl implements InspirationNodeService {
     
     private final InspirationNodeMapper nodeMapper;

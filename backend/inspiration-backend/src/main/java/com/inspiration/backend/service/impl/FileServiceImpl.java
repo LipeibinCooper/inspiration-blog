@@ -3,6 +3,7 @@ package com.inspiration.backend.service.impl;
 import com.aliyun.oss.OSS;
 import com.inspiration.backend.config.OssConfig;
 import com.inspiration.backend.exception.BusinessException;
+
 import com.inspiration.backend.model.EventMessage;
 import com.inspiration.backend.service.FileService;
 //import com.inspiration.backend.message.EventMessage;
@@ -10,6 +11,7 @@ import com.inspiration.backend.service.FileService;
 import com.inspiration.backend.service.MessageProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,7 +21,9 @@ import java.util.Arrays;
 import java.util.UUID;
 
 @Service
+
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class FileServiceImpl implements FileService {
 
     private final OSS ossClient;

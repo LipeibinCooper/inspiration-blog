@@ -1,3 +1,4 @@
+
 //package com.inspiration.backend.message;
 //
 //import com.inspiration.backend.config.RabbitConfig;

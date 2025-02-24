@@ -1,5 +1,6 @@
 package com.inspiration.backend.model;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;

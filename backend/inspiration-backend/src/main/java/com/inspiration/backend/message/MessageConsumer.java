@@ -1,3 +1,4 @@
+
 //package com.inspiration.backend.message;
 //
 //import com.inspiration.backend.config.RabbitConfig;
@@ -13,3 +14,4 @@
 //public class MessageConsumer {
 //    // ... 现有代码 ...
 //}
+

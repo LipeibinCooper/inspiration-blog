@@ -2,6 +2,7 @@ package com.inspiration.backend.service.impl;
 
 import com.inspiration.backend.entity.UserInteraction;
 import com.inspiration.backend.mapper.UserInteractionMapper;
+
 import com.inspiration.backend.model.EventMessage;
 import com.inspiration.backend.model.NotificationMessage;
 import com.inspiration.backend.service.MessageProducer;
@@ -9,6 +10,7 @@ import com.inspiration.backend.service.UserInteractionService;
 import com.inspiration.backend.service.InspirationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class UserInteractionServiceImpl implements UserInteractionService {
     
     private final UserInteractionMapper interactionMapper;

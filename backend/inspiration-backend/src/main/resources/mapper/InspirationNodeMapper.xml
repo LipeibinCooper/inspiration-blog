@@ -12,6 +12,7 @@
         <collection property="imageUrls" ofType="string">
             <result column="image_url"/>
         </collection>
+
     </resultMap>
 
     <sql id="baseJoin">

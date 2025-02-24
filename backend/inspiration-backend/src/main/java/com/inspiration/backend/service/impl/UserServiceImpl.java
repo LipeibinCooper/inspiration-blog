@@ -5,6 +5,7 @@ import com.inspiration.backend.dto.UserDTO;
 import com.inspiration.backend.dto.LoginRequest;
 import com.inspiration.backend.dto.RegisterRequest;
 import com.inspiration.backend.mapper.UserMapper;
+
 import com.inspiration.backend.model.EventMessage;
 import com.inspiration.backend.model.NotificationMessage;
 import com.inspiration.backend.service.MessageProducer;
@@ -12,12 +13,14 @@ import com.inspiration.backend.service.UserService;
 import com.inspiration.backend.exception.BusinessException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+
 //import com.inspiration.backend.message.EventMessage;
 //import com.inspiration.backend.message.NotificationMessage;
 //import com.inspiration.backend.message.MessageProducer;
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
+
 public class UserServiceImpl implements UserService {
     
     private final UserMapper userMapper;
