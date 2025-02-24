@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/inspiration_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  redis:
+    host: 8.136.114.65
+    port: 6379
+    database: 0
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+  task:
+    scheduling:
+      pool:
+        size: 5
+      thread-name-prefix: InspirationScheduler-
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    listener:
+      simple:
+        concurrency: 5
+        max-concurrency: 10
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.inspiration.backend.entity
+  configuration:
+    map-underscore-to-camel-case: true 
+
+jwt:
+  secret: your-secret-key-must-be-very-very-long-at-least-256-bits
+  expiration: 86400000 # 24 hours in milliseconds 
+
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    accessKeyId: your-access-key-id
+    accessKeySecret: your-access-key-secret
+    bucketName: your-bucket-name
+    urlPrefix: https://your-bucket-name.oss-cn-hangzhou.aliyuncs.com/
+

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspiration.backend.mapper.InspirationMapper">
+    <resultMap id="inspirationMap" type="com.inspiration.backend.entity.Inspiration">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="userId" column="user_id"/>
+        <result property="isPublic" column="is_public"/>
+        <result property="likes" column="likes"/>
+        <result property="collections" column="collections"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <association property="author" javaType="com.inspiration.backend.entity.User">
+            <id property="id" column="author_id"/>
+            <result property="username" column="author_name"/>
+            <result property="avatar" column="author_avatar"/>
+        </association>
+    </resultMap>
+
+    <sql id="baseJoin">
+        LEFT JOIN users u ON i.user_id = u.id
+    </sql>
+
+    <sql id="baseColumns">
+        i.*, 
+        u.id as author_id,
+        u.username as author_name,
+        u.avatar as author_avatar
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inspirations (title, content, user_id, is_public)
+        VALUES (#{title}, #{content}, #{userId}, #{isPublic})
+    </insert>
+
+    <select id="findById" resultMap="inspirationMap">
+        SELECT <include refid="baseColumns"/>
+        FROM inspirations i
+        <include refid="baseJoin"/>
+        WHERE i.id = #{id}
+    </select>
+
+    <select id="findByUserId" resultMap="inspirationMap">
+        SELECT <include refid="baseColumns"/>
+        FROM inspirations i
+        <include refid="baseJoin"/>
+        WHERE i.user_id = #{userId}
+        ORDER BY i.created_at DESC
+    </select>
+
+    <select id="findPublic" resultMap="inspirationMap">
+        SELECT <include refid="baseColumns"/>
+        FROM inspirations i
+        <include refid="baseJoin"/>
+        WHERE i.is_public = true
+        ORDER BY i.created_at DESC
+    </select>
+
+    <update id="update">
+        UPDATE inspirations
+        SET title = #{title},
+            content = #{content},
+            is_public = #{isPublic},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStats">
+        UPDATE inspirations
+        SET likes = #{likes},
+            collections = #{collections},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM inspirations WHERE id = #{id}
+    </delete>
+</mapper> 
