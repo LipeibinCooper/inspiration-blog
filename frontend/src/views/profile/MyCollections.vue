@@ -4,7 +4,7 @@
       <h3>我的收藏</h3>
     </div>
 
-    <div class="collections-list" v-if="collectedInspirations.length">
+    <div class="collections-list" v-if="collectedInspirations && collectedInspirations.length">
       <div 
         v-for="inspiration in collectedInspirations" 
         :key="inspiration.id"
@@ -27,46 +27,46 @@
             class="collection-btn"
             :class="{ active: true }"
             @click.stop="handleUncollect(inspiration.id)">
-            <el-icon><StarFilled /></el-icon>
+            <el-icon><Collection /></el-icon>
             已收藏
           </el-button>
         </div>
       </div>
     </div>
 
-    <el-empty 
-      v-else 
-      description="暂无收藏内容" />
+    <div v-else class="empty-state">
+      <el-empty description="暂无收藏内容" />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from "vue-router";
 import { useInteractionStore } from "@/store/useInteractionStore";
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { ElMessage } from 'element-plus';
-import { StarFilled } from '@element-plus/icons-vue';
+import { Collection } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const interactionStore = useInteractionStore();
 
-// 获取收藏的灵感列表
-const collectedInspirations = computed(() => interactionStore.collectedInspirations);
+onMounted(async () => {
+  await interactionStore.getUserInteractions();
+});
 
-// 跳转到详情页
+const collectedInspirations = computed(() => interactionStore.collectedInspirationList);
+
 const goToDetail = (id: number) => {
   router.push(`/inspiration/${id}`);
 };
 
-// 取消收藏
 const handleUncollect = (id: number) => {
   interactionStore.toggleCollection(id);
   ElMessage.success('已取消收藏');
 };
 
-// 格式化时间
 const formatTime = (timestamp: string) => {
   return formatDistanceToNow(new Date(timestamp), { 
     addSuffix: true,
@@ -74,7 +74,6 @@ const formatTime = (timestamp: string) => {
   });
 };
 
-// 截断内容
 const truncateContent = (content: string) => {
   return content.length > 50 ? content.substring(0, 50) + '...' : content;
 };
@@ -152,9 +151,9 @@ const truncateContent = (content: string) => {
         gap: 4px;
         
         &.active {
-          background: rgba(230, 162, 60, 0.1);
-          border-color: #e6a23c;
-          color: #e6a23c;
+          background: rgba(9, 105, 218, 0.1);
+          border-color: rgb(9, 105, 218);
+          color: rgb(9, 105, 218);
         }
         
         .el-icon {

@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserAvatar } from "@/hooks/useUserAvatar";
 import { 
@@ -44,10 +44,12 @@ import {
   Collection,
   ChatDotRound
 } from "@element-plus/icons-vue";
+import { useInspirationStore } from "@/store/useInspirationStore";
 
 const authStore = useAuthStore();
 const userInfo = computed(() => authStore.userInfo);
 const { forceUpdate } = useUserAvatar();
+const inspirationStore = useInspirationStore();
 
 const menuItems = [
   {
@@ -87,6 +89,10 @@ const menuItems = [
     path: '/profile/comments'
   }
 ];
+
+onMounted(async () => {
+  await inspirationStore.getInspirations(); // 确保灵感列表数据已加载
+});
 </script>
 
 <style scoped lang="scss">

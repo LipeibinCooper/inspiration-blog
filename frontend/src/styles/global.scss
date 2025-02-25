@@ -1,5 +1,3 @@
-@use 'variables' as *;
-
 // 全局样式
 body {
   margin: 0;
@@ -30,33 +28,14 @@ body {
 .el-dropdown {
   .el-dropdown-link,
   .el-button.el-dropdown-link {
-    border: 0 none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    border: none !important;
+    padding: 0;
     box-shadow: none !important;
-    background-color: transparent !important;
-    --el-button-bg-color: transparent !important;
-    --el-button-border-color: transparent !important;
-    --el-button-hover-bg-color: transparent !important;
-    --el-button-hover-border-color: transparent !important;
-    --el-button-active-bg-color: transparent !important;
-    --el-button-active-border-color: transparent !important;
+    background: transparent !important;
     
-    &:hover, &:focus, &:active {
-      border: 0 none !important;
-      background-color: transparent !important;
-      --el-button-hover-bg-color: transparent !important;
-      --el-button-hover-border-color: transparent !important;
+    &:hover {
+      background: transparent !important;
     }
-  }
-  
-  .el-dropdown-menu {
-    .el-dropdown-menu__item {
-      &:hover {
-        background: var(--el-dropdown-menuItem-hover-fill);
-      }
-    }
-    margin-top: 8px !important;
   }
 }
 
@@ -83,5 +62,11 @@ body {
 // 额外添加的全局覆盖样式
 :root {
   --el-button-hover-border-color: transparent !important;
+  --el-button-hover-bg-color: transparent !important;
+}
+
+.el-button {
+  --el-button-hover-text-color: var(--el-color-primary) !important;
+  --el-button-hover-border-color: var(--el-color-primary) !important;
   --el-button-hover-bg-color: transparent !important;
 } 

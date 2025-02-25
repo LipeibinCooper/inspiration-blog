@@ -4,7 +4,7 @@
       <h3>我的点赞</h3>
     </div>
 
-    <div class="likes-list" v-if="likedInspirations.length">
+    <div class="likes-list" v-if="likedInspirations && likedInspirations.length">
       <div 
         v-for="inspiration in likedInspirations" 
         :key="inspiration.id"
@@ -34,14 +34,14 @@
       </div>
     </div>
 
-    <el-empty 
-      v-else 
-      description="暂无点赞内容" />
+    <div v-else class="empty-state">
+      <el-empty description="暂无点赞内容" />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from "vue-router";
 import { useInteractionStore } from "@/store/useInteractionStore";
 import { formatDistanceToNow } from 'date-fns';
@@ -52,8 +52,13 @@ import { Pointer } from '@element-plus/icons-vue';
 const router = useRouter();
 const interactionStore = useInteractionStore();
 
+// 确保在使用前初始化数据
+onMounted(async () => {
+  await interactionStore.getUserInteractions();
+});
+
 // 获取点赞的灵感列表
-const likedInspirations = computed(() => interactionStore.likedInspirations);
+const likedInspirations = computed(() => interactionStore.likedInspirationList);
 
 // 跳转到详情页
 const goToDetail = (id: number) => {

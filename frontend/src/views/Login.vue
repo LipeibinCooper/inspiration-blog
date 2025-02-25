@@ -7,32 +7,20 @@
       <el-tabs v-model="activeTab">
         <el-tab-pane label="登录" name="login">
           <el-form
-            ref="loginFormRef"
+            ref="formRef"
             :model="loginForm"
-            :rules="loginRules"
-            label-position="top"
+            :rules="rules"
+            label-width="80px"
+            class="login-form"
           >
             <el-form-item label="用户名" prop="username">
-              <el-input 
-                v-model="loginForm.username"
-                placeholder="请输入用户名"
-              />
+              <el-input v-model="loginForm.username" />
             </el-form-item>
             <el-form-item label="密码" prop="password">
-              <el-input 
-                v-model="loginForm.password"
-                type="password"
-                placeholder="请输入密码"
-                show-password
-              />
+              <el-input v-model="loginForm.password" type="password" />
             </el-form-item>
             <el-form-item>
-              <el-button 
-                type="primary" 
-                class="submit-button" 
-                :loading="loading"
-                @click="handleLogin"
-              >
+              <el-button type="primary" @click="handleLogin" :loading="loading">
                 登录
               </el-button>
             </el-form-item>
@@ -89,7 +77,7 @@
 import { defineComponent, ref } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 
 // 添加错误类型定义
@@ -102,7 +90,8 @@ export default defineComponent({
   setup() {
     const authStore = useAuthStore();
     const router = useRouter();
-    const loginFormRef = ref<FormInstance>();
+    const route = useRoute();
+    const formRef = ref<FormInstance>();
     const registerFormRef = ref<FormInstance>();
     const loading = ref(false);
     const activeTab = ref('login');
@@ -121,7 +110,7 @@ export default defineComponent({
     });
 
     // 登录验证规则
-    const loginRules: FormRules = {
+    const rules: FormRules = {
       username: [
         { required: true, message: "请输入用户名", trigger: "blur" }
       ],
@@ -161,15 +150,16 @@ export default defineComponent({
 
     // 登录处理
     const handleLogin = async () => {
-      if (!loginFormRef.value) return;
+      if (!formRef.value) return;
       
-      await loginFormRef.value.validate(async (valid) => {
+      await formRef.value.validate(async (valid) => {
         if (valid) {
           loading.value = true;
           try {
             await authStore.login(loginForm.value);
-            router.push("/");
-            ElMessage.success("登录成功");
+            ElMessage.success('登录成功');
+            const redirect = route.query.redirect as string;
+            router.push(redirect || '/');
           } catch (error: unknown) {
             const err = error as LoginError;
             ElMessage.error(err.message || "登录失败");
@@ -214,9 +204,9 @@ export default defineComponent({
       activeTab,
       loginForm,
       registerForm,
-      loginRules,
+      rules,
       registerRules,
-      loginFormRef,
+      formRef,
       registerFormRef,
       loading,
       handleLogin,

@@ -77,16 +77,24 @@ const router = createRouter({
   routes
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!authStore.isLoggedIn) {
+    if (!authStore.token) {
       next({
-        path: "/login",
+        path: '/login',
         query: { redirect: to.fullPath }
       });
     } else {
+      if (!authStore.userInfo) {
+        try {
+          await authStore.getCurrentUser();
+        } catch (error) {
+          next('/login');
+          return;
+        }
+      }
       next();
     }
   } else {

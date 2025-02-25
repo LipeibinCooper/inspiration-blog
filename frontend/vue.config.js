@@ -7,7 +7,7 @@ module.exports = defineConfig({
       sass: {
         additionalData: `
           @use "sass:math";
-          @import "@/styles/variables.scss";
+          @use "@/styles/variables.scss" as *;
         `
       }
     }

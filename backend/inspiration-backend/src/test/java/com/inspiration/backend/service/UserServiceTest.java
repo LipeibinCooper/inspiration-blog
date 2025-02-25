@@ -25,7 +25,7 @@ public class UserServiceTest {
         request.setUsername("testuser");
         request.setPassword("password123");
         request.setConfirmPassword("password123");
-        request.setEmail("test@example.com");
+//        request.setEmail("test@example.com");
 
         UserDTO userDTO = userService.register(request);
         assertNotNull(userDTO);
@@ -40,7 +40,7 @@ public class UserServiceTest {
         request.setUsername("testuser");
         request.setPassword("password123");
         request.setConfirmPassword("password123");
-        request.setEmail("test@example.com");
+//        request.setEmail("test@example.com");
 
         userService.register(request);
 
@@ -48,7 +48,7 @@ public class UserServiceTest {
         duplicateRequest.setUsername("testuser");
         duplicateRequest.setPassword("password456");
         duplicateRequest.setConfirmPassword("password456");
-        duplicateRequest.setEmail("test2@example.com");
+//        duplicateRequest.setEmail("test2@example.com");
 
         assertThrows(BusinessException.class, () -> userService.register(duplicateRequest));
     }

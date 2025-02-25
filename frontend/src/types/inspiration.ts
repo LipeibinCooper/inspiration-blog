@@ -2,10 +2,67 @@
 export interface User {
   id: number;
   username: string;
-  email: string;
+  email?: string;
   avatar?: string;
-  token?: string;
   bio?: string;
+  token?: string;
+}
+
+export interface UserDTO {
+  id: number;
+  username: string;
+  email?: string;
+  avatar?: string;
+  bio?: string;
+}
+
+// API 返回的灵感类型
+export interface ApiInspiration {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt?: string;  // 可选，因为可能需要使用 createdAt 作为默认值
+  userId?: number;      // 可选，因为可能有默认值 0
+  isPublic?: boolean;   // 可选，因为可能有默认值 false
+  likes?: number;       // 可选，因为可能有默认值 0
+  comments?: number;    // 可选，因为可能有默认值 0
+  collections?: number; // 可选，因为可能有默认值 0
+  author?: {           // 可选，因为可能有默认值
+    id: number;
+    name: string;
+    avatar: string;
+  };
+}
+
+// 扩展 Inspiration 接口，确保所有字段都是必需的
+export interface Inspiration {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+  isPublic: boolean;
+  likes: number;
+  comments: number;
+  collections: number;
+  author: {
+    id: number;
+    name: string;
+    avatar: string;
+  };
+  isLiked?: boolean;
+  isCollected?: boolean;
+}
+
+// 用户互动类型
+export interface UserInteraction {
+  id: number;
+  userId: number;
+  inspirationId: number;
+  type: 'LIKE' | 'COLLECTION';
+  createdAt: string;
 }
 
 export interface LoginForm {
@@ -31,29 +88,6 @@ export interface CreateInspirationDto {
   isPublic: boolean;
 }
 
-// 修改原有的 Inspiration 接口
-export interface Inspiration {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: number;
-  isPublic: boolean;
-  likes: number;
-  comments: number;
-  collections: number;
-  author: Author;
-}
-
-// 修改用户互动记录
-export interface UserInteraction {
-  likes: number[];           // 点赞的灵感 ID
-  eventLikes: number[];      // 点赞的事件 ID
-  collections: number[];
-  comments: Comment[];
-}
-
 // 修改评论接口
 export interface Comment {
   id: number;
@@ -70,4 +104,12 @@ interface Author {
   id: number;
   name: string;
   avatar: string;
+}
+
+// API 响应类型
+export interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+  comments?: Comment[];  // 添加可选的评论字段
 } 

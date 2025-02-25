@@ -32,7 +32,7 @@ public class AuthControllerTest {
         request.setUsername("testuser");
         request.setPassword("password123");
         request.setConfirmPassword("password123");
-        request.setEmail("test@example.com");
+//        request.setEmail("test@example.com");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { User, LoginForm, RegisterForm } from "@/types/inspiration";
 import { setToken, removeToken, setUser, removeUser, getUser } from "@/utils/auth";
+import * as authApi from '@/api/auth';
 
 // 注册用户信息接口
 interface RegisteredUser {
@@ -14,8 +15,8 @@ interface RegisteredUser {
 }
 
 export const useAuthStore = defineStore("auth", () => {
-  const userInfo = ref<User | null>(getUser());
-  const token = ref<string | null>(null);
+  const userInfo = ref<User | null>(null);
+  const token = ref<string | null>(localStorage.getItem('token'));
 
   // 存储注册用户的信息
   const registeredUsers = ref<RegisteredUser[]>([
@@ -80,56 +81,29 @@ export const useAuthStore = defineStore("auth", () => {
     }));
   };
 
-  const login = async (form: LoginForm) => {
-    // 验证用户名和密码
-    const user = registeredUsers.value.find(
-      u => u.username === form.username && u.password === form.password
-    );
-
-    if (!user) {
-      throw new Error("用户名或密码错误");
-    }
-
-    // 登录成功，设置用户信息
-    userInfo.value = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar,
-      bio: user.bio
-    };
-
-    // 生成并保存 token
-    token.value = `mock_token_${user.id}`;
-    setToken(token.value);
-    setUser(userInfo.value);
+  const login = async (loginForm: LoginForm) => {
+    const res = await authApi.login(loginForm);
+    token.value = res.data.token;
+    userInfo.value = res.data.user;
+    localStorage.setItem('token', res.data.token);
+    return res;
   };
 
   const logout = () => {
-    userInfo.value = null;
     token.value = null;
-    removeToken();
-    removeUser();
+    userInfo.value = null;
+    localStorage.removeItem('token');
   };
 
-  // 注册新用户
   const register = async (registerForm: RegisterForm) => {
-    // 检查用户名是否已存在
-    if (registeredUsers.value.some(u => u.username === registerForm.username)) {
-      throw new Error("用户名已存在");
-    }
+    const res = await authApi.register(registerForm);
+    return res;
+  };
 
-    // 创建新用户
-    const newUser: RegisteredUser = {
-      id: registeredUsers.value.length + 1,
-      username: registerForm.username,
-      password: registerForm.password,
-      email: `${registerForm.username}@example.com`,
-      avatar: undefined
-    };
-
-    // 添加到注册用户列表
-    registeredUsers.value.push(newUser);
+  const getCurrentUser = async () => {
+    const res = await authApi.getCurrentUser();
+    userInfo.value = res.data;
+    return res;
   };
 
   // 更新密码
@@ -178,12 +152,9 @@ export const useAuthStore = defineStore("auth", () => {
     updatePassword,
     updateAvatar,
     updateUserBio,
-    registeredUsers
+    registeredUsers,
+    getCurrentUser
   };
 }, {
-  persist: {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    paths: ['userInfo', 'registeredUsers']
-  }
+  persist: true
 }); 

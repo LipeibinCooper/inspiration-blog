@@ -1,6 +1,7 @@
 // 灵感树节点类型定义
 export interface InspirationNode {
   id: number;
+  inspirationId: number;
   parentId: number | null;  // 父节点ID，根节点为null
   title?: string;
   content: string;         // 节点内容
