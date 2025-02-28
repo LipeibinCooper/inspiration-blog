@@ -1,4 +1,4 @@
-import request from "@/utils/request";
+import request from "@/api/request";
 import type { Inspiration, CreateInspirationDto } from "@/types/inspiration";
 
 // API 响应类型
@@ -17,8 +17,8 @@ interface ApiInspiration {
 }
 
 // 获取灵感列表
-export const getInspirations = () => {
-  return request.get<ApiResponse<Inspiration[]>>("/inspirations");
+export const getInspirations = (userId: number) => {
+  return request.get<ApiResponse<Inspiration[]>>(`/inspirations/user/${userId}`);
 };
 
 // 获取单个灵感详情

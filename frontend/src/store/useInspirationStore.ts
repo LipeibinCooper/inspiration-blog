@@ -37,6 +37,15 @@ export const useInspirationStore = defineStore("inspiration", () => {
     }
   ]);
 
+  const setInspirations = (data: Inspiration[]) => {
+    // inspirations.value = data?.map((item: Inspiration) => ({
+    //  ...item,
+    //   isLiked: false,
+    //   isCollected: false
+    // }));
+    console.log(data);
+  };
+
   // 当前用户的灵感笔记（只在左侧列表显示）
   const myInspirations = computed(() =>
     inspirations.value.filter(note => note.userId === authStore.userInfo?.id)
@@ -49,9 +58,9 @@ export const useInspirationStore = defineStore("inspiration", () => {
   );
 
   // 获取灵感列表
-  const getInspirations = async () => {
+  const getInspirations = async (userId: number) => {
     try {
-      const res = await inspirationApi.getInspirations();
+      const res = await inspirationApi.getInspirations(userId);
       // 正确访问响应中的 data 字段
       inspirations.value = res.data.data.map((item: Inspiration) => ({
         ...item,
@@ -73,7 +82,7 @@ export const useInspirationStore = defineStore("inspiration", () => {
         content: data.content || '',
         isPublic: data.isPublic ?? true
       };
-      
+
       const res = await inspirationApi.createInspiration(createDto);
       // 正确访问响应中的 data 字段
       inspirations.value.unshift(res.data.data);
@@ -201,6 +210,7 @@ export const useInspirationStore = defineStore("inspiration", () => {
   };
 
   return {
+    setInspirations,
     inspirations,
     myInspirations,
     recommendedInspirations,

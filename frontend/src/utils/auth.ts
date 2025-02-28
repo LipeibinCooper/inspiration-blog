@@ -1,7 +1,7 @@
 import { User } from "../types/inspiration";
 
 const TOKEN_KEY = 'token';
-const USER_KEY = 'user';
+const USER_KEY = 'auth';
 
 // 保存 token
 export const setToken = (token: string): void => {

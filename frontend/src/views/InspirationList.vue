@@ -10,8 +10,8 @@
 
     <!-- 灵感列表 -->
     <div class="list-content">
-      <div v-for="inspiration in inspirations" 
-           :key="inspiration.id" 
+      <div v-for="inspiration in inspirations"
+           :key="inspiration.id"
            class="list-item">
         <div class="item-content" @click="handleClick(inspiration)">
           <div class="item-header">
@@ -56,12 +56,12 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { 
-  Plus, 
-  View, 
-  ChatDotRound, 
-  Star, 
-  Delete 
+import {
+  Plus,
+  View,
+  ChatDotRound,
+  Star,
+  Delete
 } from "@element-plus/icons-vue";
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -76,15 +76,15 @@ const inspirationStore = useInspirationStore();
 
 const showCreateDialog = ref(false);
 const isMyList = computed(() => route.name === 'MyInspirations');
-const inspirations = computed(() => 
+const inspirations = computed(() =>
   isMyList.value ? inspirationStore.myInspirations : inspirationStore.recommendedInspirations
 );
 
 // 格式化时间
 const formatTime = (dateStr: string) => {
-  return formatDistanceToNow(new Date(dateStr), { 
+  return formatDistanceToNow(new Date(dateStr), {
     addSuffix: true,
-    locale: zhCN 
+    locale: zhCN
   });
 };
 
@@ -105,7 +105,7 @@ const handleDelete = async (id: number) => {
         type: 'warning'
       }
     );
-    
+
     await inspirationStore.deleteInspiration(id);
     ElMessage.success('灵感树已删除');
   } catch (error) {
@@ -126,7 +126,7 @@ const handleDelete = async (id: number) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  
+
   h2 {
     margin: 0;
     font-size: 24px;
@@ -146,11 +146,11 @@ const handleDelete = async (id: number) => {
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    
+
     .delete-btn {
       opacity: 1;
     }
@@ -167,13 +167,13 @@ const handleDelete = async (id: number) => {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
-  
+
   .item-title {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
   }
-  
+
   .item-time {
     font-size: 13px;
     color: #666;
@@ -195,7 +195,7 @@ const handleDelete = async (id: number) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+
   .author-info {
     display: flex;
     align-items: center;
@@ -203,13 +203,13 @@ const handleDelete = async (id: number) => {
     font-size: 14px;
     color: #666;
   }
-  
+
   .interaction-info {
     display: flex;
     gap: 16px;
     font-size: 13px;
     color: #666;
-    
+
     span {
       display: flex;
       align-items: center;
@@ -225,10 +225,10 @@ const handleDelete = async (id: number) => {
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 1;
-  
+
   &:hover {
     background-color: #f56c6c;
     color: #fff;
   }
 }
-</style> 
+</style>

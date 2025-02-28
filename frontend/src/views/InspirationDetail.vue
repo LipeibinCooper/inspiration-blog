@@ -2,7 +2,7 @@
   <div v-if="inspiration" class="inspiration-detail">
     <!-- 左侧：灵感树区域 -->
     <div class="tree-section">
-      <InspirationTree 
+      <InspirationTree
         :node="inspiration"
         @update="handleUpdate"
         @add="handleAdd"
@@ -14,8 +14,8 @@
     <div class="interaction-section">
       <!-- 创建者信息添加点击事件 -->
       <div class="creator-info" @click="goToUserProfile(inspiration?.author?.id)" role="button">
-        <el-avatar 
-          :size="48" 
+        <el-avatar
+          :size="48"
           :src="inspiration?.author?.avatar"
           class="creator-avatar"
         />
@@ -33,17 +33,17 @@
 
       <!-- 互动按钮 -->
       <div class="interaction-buttons">
-        <el-button 
-          type="primary" 
-          plain 
+        <el-button
+          type="primary"
+          plain
           size="small"
           :class="{ active: isLiked }"
           @click="handleLike">
           <el-icon><Pointer /></el-icon>
           {{ inspiration.likes || 0 }}
         </el-button>
-        <el-button 
-          type="primary" 
+        <el-button
+          type="primary"
           plain
           size="small"
           :class="{ active: isCollected }"
@@ -63,7 +63,7 @@
             :rows="3"
             placeholder="写下你的想法..."
           />
-          <el-button 
+          <el-button
             type="primary"
             @click="handleAddComment"
             :loading="submitting"
@@ -75,9 +75,9 @@
           <div v-for="comment in comments" :key="comment.id" class="comment-item">
             <div class="comment-header">
               <div class="user-info">
-                <el-avatar 
-                  :size="32" 
-                  :src="comment.avatar || ''" 
+                <el-avatar
+                  :size="32"
+                  :src="comment.avatar || ''"
                   class="comment-avatar">
                   {{ comment.username.charAt(0) }}
                 </el-avatar>
@@ -86,9 +86,9 @@
               <div class="comment-actions">
                 <span class="time">{{ formatTime(comment.createdAt) }}</span>
                 <!-- 只有评论作者可以删除评论 -->
-                <el-button 
+                <el-button
                   v-if="comment.userId === authStore.userInfo?.id"
-                  type="text" 
+                  type="text"
                   class="delete-btn"
                   @click="handleDeleteComment(comment.id)">
                   <el-icon><Delete /></el-icon>
@@ -119,6 +119,7 @@ import type { InspirationNode } from "@/types/inspiration-tree";
 import type { CreateNodeDto } from "@/types/inspiration-tree";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useBrowseHistoryStore } from "@/store/useBrowseHistoryStore";
+import {getUser} from "@/utils/auth";
 
 const route = useRoute();
 const router = useRouter();
@@ -136,7 +137,8 @@ const inspirationId = computed(() => Number(route.params.id));
 
 // 获取灵感详情
 const inspiration = computed(() => {
-  const allInspirations = inspirationStore.getInspirations();
+  const userId: number = getUser()?.userInfo?.id;
+  const allInspirations = inspirationStore.getInspirations(userId);
   return allInspirations.find(note => note.id === inspirationId.value);
 });
 
@@ -192,7 +194,7 @@ const handleDeleteComment = async (commentId: number) => {
 // 修改添加评论的方法
 const handleAddComment = async () => {
   if (!newComment.value.trim() || !inspiration.value) return;
-  
+
   try {
     submitting.value = true;
     // 直接使用 interactionStore 的 addComment 方法
@@ -201,7 +203,7 @@ const handleAddComment = async () => {
       inspiration.value.id,
       inspiration.value.title
     );
-    
+
     newComment.value = '';
     ElMessage.success('评论发表成功');
   } catch (error) {
@@ -220,7 +222,7 @@ const formatTime = (time?: string) => {
 // 初始化树节点数据
 const initTreeData = () => {
   if (!inspiration.value) return;
-  
+
   // 如果没有现有的树节点数据，创建一个根节点
   if (!treeStore.hasTree(inspiration.value.id)) {
     const rootNode: InspirationNode = {
@@ -311,7 +313,7 @@ watch(() => inspiration.value, (newInspiration) => {
 // 修改跳转到用户主页的方法
 const goToUserProfile = (userId?: number) => {
   if (!userId) return;
-  
+
   // 如果是当前用户，跳转到个人主页
   if (userId === authStore.userInfo?.id) {
     router.push({
@@ -348,7 +350,7 @@ const goToUserProfile = (userId?: number) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  
+
   .creator-info {
     padding: 24px 24px 0;
     display: flex;
@@ -356,47 +358,47 @@ const goToUserProfile = (userId?: number) => {
     gap: 16px;
     cursor: pointer;  // 添加鼠标指针样式
     transition: all 0.2s ease;
-    
+
     &:hover {
       opacity: 0.8;  // 添加悬浮效果
     }
-    
+
     .creator-avatar {
       border: 2px solid #fff;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
-    
+
     .creator-meta {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      
+
       .creator-name {
         font-size: 18px;
         font-weight: 600;
         color: #1d1d1f;
       }
-      
+
       .create-time {
         font-size: 14px;
         color: #86868b;
       }
     }
   }
-  
+
   .description-section {
     margin: 24px;
     background: #f8f9fa;
     border-radius: 8px;
     padding: 20px;
-    
+
     h3 {
       font-size: 16px;
       font-weight: 600;
       color: #1d1d1f;
       margin: 0 0 12px;
     }
-    
+
     .description-content {
       font-size: 14px;
       color: #6e6e73;
@@ -415,7 +417,7 @@ const goToUserProfile = (userId?: number) => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
-  
+
   .el-button {
     flex: 1;
     display: flex;
@@ -425,11 +427,11 @@ const goToUserProfile = (userId?: number) => {
     min-width: 88px;
     padding: 8px 16px;
     font-size: 13px;
-    
+
     .el-icon {
       font-size: 14px;
     }
-    
+
     &.active {
       background: rgba(9, 105, 218, 0.1);
       border-color: rgb(9, 105, 218);
@@ -444,42 +446,42 @@ const goToUserProfile = (userId?: number) => {
   flex-direction: column;
   padding: 24px;
   overflow: hidden;
-  
+
   h3 {
     margin: 0 0 20px;
     font-size: 18px;
     font-weight: 600;
     color: #1d1d1f;
   }
-  
+
   .comment-input {
     margin-bottom: 24px;
-    
+
     .el-button {
       margin-top: 12px;
       width: 100%;
     }
   }
-  
+
   .comments-list {
     flex: 1;
     overflow-y: auto;
     padding-right: 12px;
-    
+
     // 美化滚动条
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
+
     &::-webkit-scrollbar-track {
       background: rgba(0, 0, 0, 0.02);
       border-radius: 3px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background: rgba(0, 0, 0, 0.1);
       border-radius: 3px;
-      
+
       &:hover {
         background: rgba(0, 0, 0, 0.2);
       }
@@ -491,57 +493,57 @@ const goToUserProfile = (userId?: number) => {
   .comment-item {
     padding: 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     .comment-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      
+
       .user-info {
         display: flex;
         align-items: center;
         gap: 8px;
-        
+
         .comment-avatar {
           border: 1px solid rgba(0, 0, 0, 0.06);
         }
-        
+
         .username {
           font-weight: 500;
           color: #1d1d1f;
         }
       }
-      
+
       .comment-actions {
         display: flex;
         align-items: center;
         gap: 12px;
-        
+
         .time {
           font-size: 13px;
           color: #86868b;
         }
-        
+
         .delete-btn {
           padding: 4px;
           color: #999;
-          
+
           &:hover {
             color: #f56c6c;
           }
-          
+
           .el-icon {
             font-size: 14px;
           }
         }
       }
     }
-    
+
     .comment-content {
       font-size: 14px;
       line-height: 1.6;

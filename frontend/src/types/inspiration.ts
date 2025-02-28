@@ -1,5 +1,6 @@
 // 用户相关类型
 export interface User {
+  userInfo?: object;
   id: number;
   username: string;
   email?: string;
@@ -112,4 +113,4 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   comments?: Comment[];  // 添加可选的评论字段
-} 
+}
