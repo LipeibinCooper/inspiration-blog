@@ -18,22 +18,17 @@ interface ApiInspiration {
 
 // 获取灵感列表
 export const getInspirations = (page?: number, pageSize?: number) => {
-  return request.get<ApiResponse<{
-    items: Inspiration[];
-    total: number;
-    page: number;
-    pageSize: number;
-  }>>(page && pageSize ? `/inspirations?page=${page}&pageSize=${pageSize}` : '/inspirations');
+  return request.get(page && pageSize ? `/inspirations?page=${page}&pageSize=${pageSize}` : '/inspirations');
 };
 
 // 获取单个灵感详情
 export const getInspirationById = (id: number) => {
-  return request.get<ApiResponse<Inspiration>>(`/inspirations/${id}`);
+  return request.get(`/inspirations/${id}`);
 };
 
 // 创建灵感
 export const createInspiration = (data: CreateInspirationDto) => {
-  return request.post<ApiResponse<Inspiration>>('/inspirations', data);
+  return request.post<ApiResponse<Inspiration>>('/inspirations/create', data);
 };
 
 // 删除灵感

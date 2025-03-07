@@ -13,11 +13,11 @@
             <h2 class="text-title">我的灵感树</h2>
           </div>
           <span class="subtitle" v-if="!isSidebarCollapsed">
-            {{ inspirationStore.myInspirations.length }} 个灵感
+            {{ inspirationStore.inspirations.length }} 个灵感
           </span>
         </div>
-        <el-button 
-          type="primary" 
+        <el-button
+          type="primary"
           class="create-btn"
           @click="showCreateDialog = true"
           v-if="!isSidebarCollapsed"
@@ -28,7 +28,7 @@
       </div>
 
       <!-- 替换折叠按钮为突起设计 -->
-      <div 
+      <div
         class="sidebar-tab"
         @click="toggleSidebar"
         :title="isSidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
@@ -41,7 +41,7 @@
 
       <div class="inspiration-list" v-if="!isSidebarCollapsed">
         <div
-          v-for="note in inspirationStore.myInspirations"
+          v-for="note in inspirationStore.inspirations"
           :key="note.id"
           class="inspiration-item"
           :class="{ active: note.id === currentId }"
@@ -67,7 +67,7 @@
         <header class="section-header">
           <h1>发现灵感</h1>
           <p class="subtitle">探索他人的思维火花，激发你的创意灵感</p>
-          
+
           <!-- 添加搜索区域 -->
           <div class="search-section">
             <div class="search-box">
@@ -80,7 +80,7 @@
                 class="search-input"
               />
             </div>
-            
+
             <!-- 搜索结果统计 -->
             <div class="search-stats" v-if="searchQuery">
               找到 {{ filteredInspirations.length }} 条相关灵感
@@ -89,7 +89,7 @@
         </header>
 
         <!-- 使用过滤后的灵感列表 -->
-        <inspiration-list 
+        <inspiration-list
           :inspirations="filteredInspirations"
           :isSidebarCollapsed="isSidebarCollapsed"
         />
@@ -105,15 +105,15 @@
       class="create-dialog"
     >
       <div class="dialog-content">
-        <el-form 
-          :model="createForm" 
+        <el-form
+          :model="createForm"
           :rules="rules"
           ref="createFormRef"
           label-position="top"
           class="create-form"
         >
-          <el-form-item 
-            label="种子灵感" 
+          <el-form-item
+            label="种子灵感"
             prop="title"
             class="form-item"
           >
@@ -127,9 +127,9 @@
               size="large"
             />
           </el-form-item>
-          
-          <el-form-item 
-            label="描述（选填）" 
+
+          <el-form-item
+            label="描述（选填）"
             class="form-item"
           >
             <div class="form-item-hint">补充说明你的想法，让它更容易被理解</div>
@@ -145,8 +145,8 @@
 
           <el-form-item label="可见性" class="form-item">
             <div class="visibility-options">
-              <div 
-                class="visibility-option" 
+              <div
+                class="visibility-option"
                 :class="{ active: createForm.isPublic }"
                 @click="createForm.isPublic = true"
               >
@@ -158,8 +158,8 @@
                   <span class="option-desc">所有人可见</span>
                 </div>
               </div>
-              <div 
-                class="visibility-option" 
+              <div
+                class="visibility-option"
                 :class="{ active: !createForm.isPublic }"
                 @click="createForm.isPublic = false"
               >
@@ -179,8 +179,8 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="showCreateDialog = false" size="large">取消</el-button>
-          <el-button 
-            type="primary" 
+          <el-button
+            type="primary"
             :loading="creating"
             @click="handleCreate"
             size="large"
@@ -237,17 +237,17 @@ const rules = {
 // 创建新灵感
 const handleCreate = async () => {
   if (!createFormRef.value) return;
-  
+
   try {
     creating.value = true;
     await createFormRef.value.validate();
-    
+
     console.log('准备创建灵感:', {
       title: createForm.value.title,
       content: createForm.value.content,
       isPublic: createForm.value.isPublic
     });
-    
+
     const newId = await inspirationStore.createInspiration({
       title: createForm.value.title,
       content: createForm.value.content,
@@ -258,7 +258,9 @@ const handleCreate = async () => {
     showCreateDialog.value = false;
     createForm.value = { title: "", content: "", isPublic: true };
     ElMessage.success("灵感创建成功");
-    router.push(`/inspiration/${newId}`);
+    // TODO: 跳转到新创建的灵感详情页，这里先刷新替代
+    // router.push(`/inspiration/${newId}`);
+    router.push('/');
   } catch (error) {
     console.error("创建失败，错误详情:", error);
     ElMessage.error("创建失败");
@@ -295,7 +297,7 @@ const filteredInspirations = computed(() => {
 
   return inspirationStore.recommendedInspirations.filter(inspiration => {
     // 同时搜索标题和作者
-    return inspiration.title.toLowerCase().includes(query) || 
+    return inspiration.title.toLowerCase().includes(query) ||
            inspiration.author.name.toLowerCase().includes(query);
   });
 });
@@ -315,12 +317,12 @@ const toggleSidebar = () => {
   display: flex;
   min-height: 100vh;
   background-color: #fff;
-  
+
   // 添加过渡效果
   .inspiration-grid {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   // 侧边栏收起时的样式
   &.sidebar-collapsed {
     .inspiration-grid {
@@ -338,12 +340,12 @@ const toggleSidebar = () => {
   flex-direction: column;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   // 移除旧的折叠按钮样式
   .collapse-btn {
     display: none;
   }
-  
+
   // 添加新的突起标签样式
   .sidebar-tab {
     position: absolute;
@@ -363,27 +365,27 @@ const toggleSidebar = () => {
     color: #666;
     transition: all 0.3s ease;
     box-shadow: 4px 0 8px rgba(0, 0, 0, 0.03);
-    
+
     &:hover {
       background: var(--el-color-primary-light-9);
       color: var(--el-color-primary);
     }
-    
+
     .el-icon {
       font-size: 12px;
       transition: transform 0.3s ease;
     }
   }
-  
+
   &.collapsed {
     width: 70px;
-    
+
     .sidebar-tab {
       background: var(--el-color-primary-light-9);
       color: var(--el-color-primary);
     }
   }
-  
+
   .sidebar-header {
     padding: 24px 20px;
     background: rgba(255, 255, 255, 0.9);
@@ -393,16 +395,16 @@ const toggleSidebar = () => {
     top: 0;
     z-index: 10;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     .header-title {
       margin-bottom: 16px;
-      
+
       .title-wrapper {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 4px;
-        
+
         .tree-icon {
           width: 44px;
           height: 44px;
@@ -417,17 +419,17 @@ const toggleSidebar = () => {
           margin-right: 8px;
           box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.2);
           transform: translateX(-5px);
-          
+
           .el-icon {
             font-size: 28px;  // 增大图标尺寸
           }
-          
+
           &:hover {
             transform: translateY(-2px) translateX(-5px);
             box-shadow: 0 6px 16px rgba(var(--el-color-primary-rgb), 0.3);
           }
         }
-        
+
         .text-title {
           font-size: 18px;
           font-weight: 600;
@@ -438,14 +440,14 @@ const toggleSidebar = () => {
           overflow: hidden;
         }
       }
-      
+
       .subtitle {
         font-size: 13px;
         color: #86868b;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
-    
+
     .create-btn {
       width: 100%;
       height: 40px;
@@ -454,13 +456,13 @@ const toggleSidebar = () => {
       font-weight: 500;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
-      
+
       .el-icon {
         margin-right: 4px;
         font-size: 16px;
         transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      
+
       span {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
@@ -473,29 +475,29 @@ const toggleSidebar = () => {
   padding: 16px;
   overflow-y: auto;
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
-    
+
     &:hover {
       background: rgba(0, 0, 0, 0.2);
     }
   }
-  
+
   &.fade-enter-active,
   &.fade-leave-active {
     transition: opacity 0.3s ease;
   }
-  
+
   &.fade-enter-from,
   &.fade-leave-to {
     opacity: 0;
@@ -510,13 +512,13 @@ const toggleSidebar = () => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: 1px solid rgba(0, 0, 0, 0.04);
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border-color: rgba(0, 0, 0, 0.08);
   }
-  
+
   &.active {
     background: var(--el-color-primary-light-9);
     border-color: var(--el-color-primary-light-5);
@@ -525,7 +527,7 @@ const toggleSidebar = () => {
   .item-content {
     .item-main {
       margin-bottom: 12px;
-      
+
       .title {
         font-size: 15px;
         font-weight: 500;
@@ -533,7 +535,7 @@ const toggleSidebar = () => {
         margin: 0 0 4px;
         line-height: 1.4;
       }
-      
+
       .preview {
         font-size: 13px;
         color: #86868b;
@@ -541,17 +543,17 @@ const toggleSidebar = () => {
         line-height: 1.5;
       }
     }
-    
+
     .item-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       .time {
         font-size: 12px;
         color: #999;
       }
-      
+
       .el-tag {
         border: none;
         font-weight: 500;
@@ -580,7 +582,7 @@ const toggleSidebar = () => {
   max-width: 600px;
   margin: 0 auto 64px;
   text-align: center;
-  
+
   h1 {
     font-size: 48px;
     font-weight: 600;
@@ -589,7 +591,7 @@ const toggleSidebar = () => {
     margin: 0 0 16px;
     line-height: 1.1;
   }
-  
+
   .subtitle {
     font-size: 24px;
     color: #6e6e73;
@@ -614,18 +616,18 @@ const toggleSidebar = () => {
   border: 1px solid rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  
+
   &:hover {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
   }
-  
+
   .card-content {
     padding: 32px;
     flex: 1;
     display: flex;
     align-items: center;
-    
+
     h3 {
       font-size: 24px;
       font-weight: 600;
@@ -635,12 +637,12 @@ const toggleSidebar = () => {
       line-height: 1.3;
     }
   }
-  
+
   .card-footer {
     padding: 24px 32px;
     background: rgba(0, 0, 0, 0.02);
     border-top: 1px solid rgba(0, 0, 0, 0.03);
-    
+
     .footer-content {
       display: flex;
       justify-content: space-between;
@@ -651,12 +653,12 @@ const toggleSidebar = () => {
       display: flex;
       align-items: center;
       gap: 12px;
-      
+
       .author-avatar {
         border: 2px solid #fff;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
       }
-      
+
       .author-name {
         font-size: 15px;
         font-weight: 500;
@@ -669,7 +671,7 @@ const toggleSidebar = () => {
       display: flex;
       align-items: center;
       gap: 12px;
-      
+
       .time {
         font-size: 14px;
         color: #86868b;
@@ -685,12 +687,12 @@ const toggleSidebar = () => {
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    
+
     .el-dialog__header {
       margin: 0;
       padding: 32px;
       border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      
+
       .el-dialog__title {
         font-size: 24px;
         font-weight: 600;
@@ -698,7 +700,7 @@ const toggleSidebar = () => {
         letter-spacing: -0.01em;
       }
     }
-    
+
     .el-dialog__body {
       padding: 32px;
     }
@@ -712,14 +714,14 @@ const toggleSidebar = () => {
 
   .form-item {
     margin-bottom: 32px;
-    
+
     :deep(.el-form-item__label) {
       padding-bottom: 12px;
       font-size: 16px;
       font-weight: 500;
       color: #1d1d1f;
     }
-    
+
     .form-item-hint {
       font-size: 14px;
       color: #86868b;
@@ -730,11 +732,11 @@ const toggleSidebar = () => {
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
       padding: 4px 12px;
       transition: all 0.2s ease;
-      
+
       &:hover {
         box-shadow: 0 0 0 1px var(--el-color-primary);
       }
-      
+
       &.is-focus {
         box-shadow: 0 0 0 2px var(--el-color-primary-light-5);
       }
@@ -750,7 +752,7 @@ const toggleSidebar = () => {
   .visibility-options {
     display: flex;
     gap: 24px;  // 增加间距
-    
+
     .visibility-option {
       flex: 1;
       display: flex;
@@ -761,23 +763,23 @@ const toggleSidebar = () => {
       border: 1px solid rgba(0, 0, 0, 0.1);
       cursor: pointer;
       transition: all 0.2s ease;
-      
+
       &:hover {
         border-color: var(--el-color-primary);
         background: var(--el-color-primary-light-9);
       }
-      
+
       &.active {
         border-color: var(--el-color-primary);
         background: var(--el-color-primary-light-9);
-        
+
         .icon-wrapper {
           background: var(--el-color-primary);
           color: white;
           transform: scale(1.1);
         }
       }
-      
+
       .icon-wrapper {
         width: 36px;  // 减小图标容器尺寸
         height: 36px;
@@ -787,23 +789,23 @@ const toggleSidebar = () => {
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
-        
+
         .el-icon {
           font-size: 18px;  // 减小图标尺寸
         }
       }
-      
+
       .option-content {
         display: flex;
         flex-direction: column;
         gap: 2px;  // 减小标题和描述的间距
-        
+
         .option-title {
           font-size: 15px;  // 减小标题字号
           font-weight: 500;
           color: #1d1d1f;
         }
-        
+
         .option-desc {
           font-size: 12px;  // 减小描述字号
           color: #86868b;
@@ -829,36 +831,36 @@ const toggleSidebar = () => {
 .search-section {
   max-width: 800px;
   margin: 32px auto 0;
-  
+
   .search-box {
     :deep(.el-input) {
       --el-input-height: 48px;
-      
+
       .el-input__wrapper {
         border-radius: 24px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
         transition: all 0.3s ease;
         padding: 0 20px;
-        
+
         &:hover {
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         }
-        
+
         &.is-focus {
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
         }
-        
+
         .el-input__inner {
           font-size: 15px;
-          
+
           &::placeholder {
             color: #999;
           }
         }
-        
+
         .el-input__prefix {
           margin-right: 8px;
-          
+
           .el-icon {
             font-size: 18px;
             color: #999;
@@ -867,7 +869,7 @@ const toggleSidebar = () => {
       }
     }
   }
-  
+
   .search-stats {
     margin-top: 16px;
     text-align: center;
@@ -887,7 +889,7 @@ const toggleSidebar = () => {
     padding: 0;  // 移除内边距
     box-shadow: none !important;  // 移除阴影
     background: transparent !important;  // 移除背景色
-    
+
     &:hover {
       background: transparent !important;  // 悬浮时也保持透明背景
     }
@@ -900,7 +902,7 @@ const toggleSidebar = () => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  
+
   .username {
     font-size: 14px;
     color: #1d1d1f;

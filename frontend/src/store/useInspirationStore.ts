@@ -7,6 +7,7 @@ import { useInspirationTreeStore } from "./useInspirationTreeStore";
 import * as inspirationApi from "@/api/inspiration";
 import * as commentApi from "@/api/comment";
 import { ElMessage } from "element-plus";
+import _ from "lodash";
 
 export const useInspirationStore = defineStore("inspiration", () => {
   const authStore = useAuthStore();
@@ -51,8 +52,13 @@ export const useInspirationStore = defineStore("inspiration", () => {
   const getInspirations = async () => {
     try {
       const res = await inspirationApi.getInspirations();
+      console.log('获取灵感列表成功:', res);
+      const nodes= res.data
+      console.log('转换为树形结构:', nodes);
+      const re2 = nodes.data
+      console.log('rs:', re2);
       // 正确访问分页数据中的items数组
-      inspirations.value = res.data.data.items.map((item: Inspiration) => ({
+      inspirations.value = _.map(re2, (item: Inspiration) => ({
         ...item,
         isLiked: false,
         isCollected: false
@@ -72,8 +78,9 @@ export const useInspirationStore = defineStore("inspiration", () => {
         content: data.content || '',
         isPublic: data.isPublic ?? true
       };
-      
+
       const res = await inspirationApi.createInspiration(createDto);
+      console.log('创建灵感成功 store:', res);
       // 添加必要的字段
       const newInspiration = {
         ...res.data.data,
@@ -129,8 +136,10 @@ export const useInspirationStore = defineStore("inspiration", () => {
   const fetchInspiration = async (id: number) => {
     try {
       const res = await inspirationApi.getInspirationById(id);
-      if (res.data && res.data.code === 0) {
-        return res.data.data;
+      console.log('获取灵感详情成功:', res);
+      // TODO: 暴力判断正确
+      if (res.data && res.data.code) {
+        return res.data;
       } else {
         const errorMessage = res.data?.message || '获取灵感详情失败';
         console.error('获取灵感详情失败:', errorMessage);
