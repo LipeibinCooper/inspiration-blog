@@ -32,7 +32,7 @@ public class UserInteractionServiceImpl implements UserInteractionService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"user_interactions", "inspiration_interactions"}, allEntries = true)
+//    @CacheEvict(value = {"user_interactions", "inspiration_interactions"}, allEntries = true)
     public void toggleLike(Long userId, Long inspirationId) {
         boolean exists = interactionMapper.exists(userId, inspirationId, UserInteraction.InteractionType.LIKE);
         
@@ -78,7 +78,7 @@ public class UserInteractionServiceImpl implements UserInteractionService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"user_interactions", "inspiration_interactions"}, allEntries = true)
+//    @CacheEvict(value = {"user_interactions", "inspiration_interactions"}, allEntries = true)
     public void toggleCollection(Long userId, Long inspirationId) {
         boolean exists = interactionMapper.exists(userId, inspirationId, UserInteraction.InteractionType.COLLECTION);
         
@@ -123,25 +123,25 @@ public class UserInteractionServiceImpl implements UserInteractionService {
     }
 
     @Override
-    @Cacheable(value = "user_interactions", key = "#userId")
+//    @Cacheable(value = "user_interactions", key = "#userId")
     public List<UserInteraction> findByUserId(Long userId) {
         return interactionMapper.findByUserId(userId);
     }
 
     @Override
-    @Cacheable(value = "inspiration_interactions", key = "#inspirationId")
+//    @Cacheable(value = "inspiration_interactions", key = "#inspirationId")
     public List<UserInteraction> findByInspirationId(Long inspirationId) {
         return interactionMapper.findByInspirationId(inspirationId);
     }
 
     @Override
-    @Cacheable(value = "user_interaction_status", key = "'like:' + #userId + ':' + #inspirationId")
+//    @Cacheable(value = "user_interaction_status", key = "'like:' + #userId + ':' + #inspirationId")
     public boolean hasLiked(Long userId, Long inspirationId) {
         return interactionMapper.exists(userId, inspirationId, UserInteraction.InteractionType.LIKE);
     }
 
     @Override
-    @Cacheable(value = "user_interaction_status", key = "'collection:' + #userId + ':' + #inspirationId")
+//    @Cacheable(value = "user_interaction_status", key = "'collection:' + #userId + ':' + #inspirationId")
     public boolean hasCollected(Long userId, Long inspirationId) {
         return interactionMapper.exists(userId, inspirationId, UserInteraction.InteractionType.COLLECTION);
     }

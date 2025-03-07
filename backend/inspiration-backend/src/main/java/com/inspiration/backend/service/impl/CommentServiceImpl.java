@@ -33,7 +33,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
+//    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
     public Comment create(Comment comment) {
         commentMapper.insert(comment);
 
@@ -59,20 +59,20 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Cacheable(value = "inspiration_comments", key = "#inspirationId")
+//    @Cacheable(value = "inspiration_comments", key = "#inspirationId")
     public List<Comment> findByInspirationId(Long inspirationId) {
         return commentMapper.findByInspirationId(inspirationId);
     }
 
     @Override
-    @Cacheable(value = "user_comments", key = "#userId")
+//    @Cacheable(value = "user_comments", key = "#userId")
     public List<Comment> findByUserId(Long userId) {
         return commentMapper.findByUserId(userId);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
+//    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
     public void delete(Long id, Long userId) {
         List<Comment> comments = commentMapper.findByUserId(userId);
         boolean isOwner = comments.stream()
@@ -85,7 +85,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
+//    @CacheEvict(value = {"inspiration_comments", "user_comments"}, allEntries = true)
     public void deleteByInspirationId(Long inspirationId) {
         commentMapper.deleteByInspirationId(inspirationId);
     }

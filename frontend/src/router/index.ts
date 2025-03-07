@@ -5,6 +5,10 @@ import UserProfile from '@/views/UserProfile.vue'
 // 路由配置
 const routes: Array<RouteRecordRaw> = [
   {
+    path: "/home",
+    redirect: "/"
+  },
+  {
     path: "/",
     name: "home",
     component: () => import("../views/HomeView.vue"),
@@ -79,7 +83,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  
+
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.token) {
       next({

@@ -44,7 +44,7 @@ public class InspirationServiceImpl implements InspirationService {
         return inspiration;
     }
 
-    @Cacheable(value = "inspirations", key = "#id")
+//    @Cacheable(value = "inspirations", key = "#id")
     @Override
     public Inspiration findById(Long id) {
         Inspiration inspiration = inspirationMapper.findById(id);
@@ -54,13 +54,13 @@ public class InspirationServiceImpl implements InspirationService {
         return inspiration;
     }
 
-    @Cacheable(value = "user_inspirations", key = "#userId")
+//    @Cacheable(value = "user_inspirations", key = "#userId")
     @Override
     public List<Inspiration> findByUserId(Long userId) {
         return inspirationMapper.findByUserId(userId);
     }
 
-    @Cacheable(value = "public_inspirations")
+//    @Cacheable(value = "public_inspirations")
     @Override
     public List<Inspiration> findPublic(Integer page, Integer pageSize) {
         // 设置默认分页参数
@@ -69,7 +69,7 @@ public class InspirationServiceImpl implements InspirationService {
         return inspirationMapper.findPublic(page * pageSize, pageSize);
     }
 
-    @CacheEvict(value = {"inspirations", "user_inspirations", "public_inspirations"}, allEntries = true)
+//    @CacheEvict(value = {"inspirations", "user_inspirations", "public_inspirations"}, allEntries = true)
     @Override
     @Transactional
     public void update(Inspiration inspiration) {
@@ -80,7 +80,7 @@ public class InspirationServiceImpl implements InspirationService {
         inspirationMapper.update(inspiration);
     }
 
-    @CacheEvict(value = {"inspirations", "user_inspirations", "public_inspirations"}, allEntries = true)
+//    @CacheEvict(value = {"inspirations", "user_inspirations", "public_inspirations"}, allEntries = true)
     @Override
     @Transactional
     public void delete(Long id) {

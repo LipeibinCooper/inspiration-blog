@@ -27,8 +27,9 @@ public class InspirationController extends BaseController {
     private final UserInteractionService interactionService;
 
     @Operation(summary = "创建灵感")
-    @PostMapping
+    @PostMapping("/create")
     public Result<Inspiration> create(@Valid @RequestBody InspirationRequest request) {
+        System.out.println("ok");
         Inspiration inspiration = new Inspiration();
         inspiration.setTitle(request.getTitle());
         inspiration.setContent(request.getContent());
@@ -53,7 +54,7 @@ public class InspirationController extends BaseController {
     public Result<List<Inspiration>> getAll(
             @Parameter(description = "页码") @RequestParam(required = false) Integer page,
             @Parameter(description = "每页数量") @RequestParam(required = false) Integer pageSize) {
-        return success(inspirationService.findPublic(page, pageSize));
+        return success(inspirationService.findPublic(page, 100));
     }
     @Operation(summary = "获取公开灵感列表")
     @GetMapping("/public")

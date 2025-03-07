@@ -2,7 +2,7 @@
   <div class="login-container">
     <el-card class="login-card">
       <h2>欢迎使用灵感笔记</h2>
-      
+
       <!-- 切换登录/注册的标签页 -->
       <el-tabs v-model="activeTab">
         <el-tab-pane label="登录" name="login">
@@ -35,13 +35,13 @@
             label-position="top"
           >
             <el-form-item label="用户名" prop="username">
-              <el-input 
+              <el-input
                 v-model="registerForm.username"
                 placeholder="请输入用户名"
               />
             </el-form-item>
             <el-form-item label="密码" prop="password">
-              <el-input 
+              <el-input
                 v-model="registerForm.password"
                 type="password"
                 placeholder="请输入密码"
@@ -49,7 +49,7 @@
               />
             </el-form-item>
             <el-form-item label="确认密码" prop="confirmPassword">
-              <el-input 
+              <el-input
                 v-model="registerForm.confirmPassword"
                 type="password"
                 placeholder="请再次输入密码"
@@ -57,9 +57,9 @@
               />
             </el-form-item>
             <el-form-item>
-              <el-button 
-                type="primary" 
-                class="submit-button" 
+              <el-button
+                type="primary"
+                class="submit-button"
                 :loading="loading"
                 @click="handleRegister"
               >
@@ -98,8 +98,8 @@ export default defineComponent({
 
     // 登录表单
     const loginForm = ref({
-      username: "",
-      password: ""
+      username: "linjie",
+      password: "123456"
     });
 
     // 注册表单
@@ -151,7 +151,7 @@ export default defineComponent({
     // 登录处理
     const handleLogin = async () => {
       if (!formRef.value) return;
-      
+
       await formRef.value.validate(async (valid) => {
         if (valid) {
           loading.value = true;
@@ -159,7 +159,9 @@ export default defineComponent({
             await authStore.login(loginForm.value);
             ElMessage.success('登录成功');
             const redirect = route.query.redirect as string;
-            router.push(redirect || '/');
+            console.log(redirect);
+            // 跳转到首页
+            router.push('/home');
           } catch (error: unknown) {
             const err = error as LoginError;
             ElMessage.error(err.message || "登录失败");

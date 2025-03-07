@@ -31,6 +31,7 @@ if (process.env.NODE_ENV === 'development') {
 // 请求拦截器
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // console.log('Request Interceptor:', config);
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -47,20 +48,21 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response: AxiosResponse) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Response:', {
-        status: response.status,
-        statusText: response.statusText,  // 添加状态文本
-        data: response.data,
-        headers: response.headers,
-        config: {  // 添加请求配置信息
-          url: response.config.url,
-          method: response.config.method,
-          baseURL: response.config.baseURL
-        }
-      });
+      console.log('d');
+      // console.log('Response:', {
+      //   status: response.status,
+      //   statusText: response.statusText,  // 添加状态文本
+      //   data: response.data,
+      //   headers: response.headers,
+      //   config: {  // 添加请求配置信息
+      //     url: response.config.url,
+      //     method: response.config.method,
+      //     baseURL: response.config.baseURL
+      //   }
+      // });
     }
     const data = response.data;
-    if (data.code !== 0) {
+    if (data.code == 0) {
       console.error('API Error:', {
         code: data.code,
         message: data.message,
@@ -71,6 +73,7 @@ request.interceptors.response.use(
       ElMessage.error(data.message || '请求失败');
       return Promise.reject(new Error(data.message || '请求失败'));
     }
+    console.log('res', response)
     return response;
   },
   (error) => {
