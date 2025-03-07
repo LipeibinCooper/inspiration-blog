@@ -17,8 +17,13 @@ interface ApiInspiration {
 }
 
 // 获取灵感列表
-export const getInspirations = () => {
-  return request.get<ApiResponse<Inspiration[]>>("/inspirations");
+export const getInspirations = (page?: number, pageSize?: number) => {
+  return request.get<ApiResponse<{
+    items: Inspiration[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }>>(page && pageSize ? `/inspirations?page=${page}&pageSize=${pageSize}` : '/inspirations');
 };
 
 // 获取单个灵感详情

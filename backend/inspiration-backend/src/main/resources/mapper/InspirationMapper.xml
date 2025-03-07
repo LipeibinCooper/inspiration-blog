@@ -55,6 +55,7 @@
         <include refid="baseJoin"/>
         WHERE i.is_public = true
         ORDER BY i.created_at DESC
+        LIMIT #{pageSize} OFFSET #{page}
     </select>
 
     <update id="update">
@@ -77,4 +78,4 @@
     <delete id="delete">
         DELETE FROM inspirations WHERE id = #{id}
     </delete>
-</mapper> 
+</mapper>

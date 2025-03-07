@@ -1,4 +1,4 @@
-import request from './request';
+import request from '@/utils/request';
 import type { UserInteraction } from '@/types/inspiration';
 
 export const toggleLike = (inspirationId: number) => {
@@ -11,4 +11,4 @@ export const toggleCollection = (inspirationId: number) => {
 
 export const getUserInteractions = () => {
   return request.get('/user/interactions');
-}; 
+};

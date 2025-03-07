@@ -1,8 +1,9 @@
 <template>
-  <div v-if="inspiration" class="inspiration-detail">
+  <div v-if="inspiration && inspiration.id" class="inspiration-detail">
     <!-- 左侧：灵感树区域 -->
     <div class="tree-section">
       <InspirationTree 
+        v-if="inspiration"
         :node="inspiration"
         @update="handleUpdate"
         @add="handleAdd"
@@ -135,10 +136,30 @@ const submitting = ref(false);
 const inspirationId = computed(() => Number(route.params.id));
 
 // 获取灵感详情
-const inspiration = computed(() => {
-  const allInspirations = inspirationStore.getInspirations();
-  return allInspirations.find(note => note.id === inspirationId.value);
-});
+const inspiration = ref<any>(null);
+
+// 加载灵感详情数据
+const loadInspirationData = async () => {
+  if (!inspirationId.value) return;
+  try {
+    const data = await inspirationStore.fetchInspiration(inspirationId.value);
+    if (data) {
+      inspiration.value = { ...data };
+      // 更新store中的数据
+      const index = inspirationStore.inspirations.findIndex(note => note.id === inspirationId.value);
+      if (index === -1) {
+        inspirationStore.inspirations.push({ ...data });
+      } else {
+        inspirationStore.inspirations[index] = { ...data };
+      }
+    } else {
+      ElMessage.error('找不到灵感数据');
+    }
+  } catch (error) {
+    console.error('获取灵感详情失败:', error);
+    ElMessage.error('获取灵感详情失败');
+  }
+};
 
 // 检查当前用户是否已点赞
 const isLiked = computed(() => {
@@ -218,8 +239,11 @@ const formatTime = (time?: string) => {
 };
 
 // 初始化树节点数据
-const initTreeData = () => {
-  if (!inspiration.value) return;
+const initTreeData = async () => {
+  if (!inspiration.value) {
+    console.error('找不到灵感数据，无法初始化树');
+    return;
+  }
   
   // 如果没有现有的树节点数据，创建一个根节点
   if (!treeStore.hasTree(inspiration.value.id)) {
@@ -232,16 +256,18 @@ const initTreeData = () => {
       updatedAt: inspiration.value.updatedAt,
       children: []
     };
-    treeStore.initTree(rootNode);
+    await treeStore.initTree(rootNode);
   }
+  
+  // 获取完整的树节点数据
+  await treeStore.getTreeNodes(inspiration.value.id);
 };
 
-// 在组件挂载时初始化树数据
-onMounted(() => {
-  initTreeData();
-  if (!inspiration.value) {
-    // 如果找不到灵感数据，可以显示错误信息或重定向
-    console.error('找不到灵感数据');
+// 在组件挂载时获取数据并初始化树
+onMounted(async () => {
+  await loadInspirationData();
+  if (inspiration.value) {
+    await initTreeData();
   }
 });
 

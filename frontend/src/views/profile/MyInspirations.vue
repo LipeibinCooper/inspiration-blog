@@ -80,10 +80,19 @@ const myInspirations = computed(() => inspirationStore.myInspirations);
 
 // 格式化时间
 const formatTime = (dateStr: string) => {
-  return formatDistanceToNow(new Date(dateStr), { 
-    addSuffix: true,
-    locale: zhCN 
-  });
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return '无效时间';
+    }
+    return formatDistanceToNow(date, { 
+      addSuffix: true,
+      locale: zhCN 
+    });
+  } catch (error) {
+    console.error('时间格式化错误:', error);
+    return '无效时间';
+  }
 };
 
 // 处理点击灵感卡片
@@ -254,4 +263,4 @@ const handleBatchDelete = async () => {
     }
   }
 }
-</style> 
+</style>

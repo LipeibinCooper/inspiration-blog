@@ -1,4 +1,4 @@
-import request from './request';
+import request from '@/utils/request';
 import type { LoginForm, RegisterForm } from '@/types/inspiration';
 
 export const login = (data: LoginForm) => {
@@ -11,4 +11,4 @@ export const register = (data: RegisterForm) => {
 
 export const getCurrentUser = () => {
   return request.get('/auth/me');
-}; 
+};

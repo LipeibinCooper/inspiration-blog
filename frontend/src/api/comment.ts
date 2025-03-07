@@ -1,4 +1,4 @@
-import request from './request';
+import request from '@/utils/request';
 import type { Comment } from '@/types/inspiration';
 
 export const createComment = (data: { inspirationId: number; content: string }) => {
@@ -15,4 +15,4 @@ export const getUserComments = (userId: number) => {
 
 export const deleteComment = (id: number) => {
   return request.delete(`/comments/${id}`);
-}; 
+};

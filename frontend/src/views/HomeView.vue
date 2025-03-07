@@ -194,16 +194,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useInspirationStore } from "@/store/useInspirationStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
 import { Plus, Search, ArrowLeft, ArrowRight, Connection, View, Lock } from '@element-plus/icons-vue';
 import InspirationList from "@/components/InspirationList.vue";
 
 const router = useRouter();
+const authStore = useAuthStore();
 const inspirationStore = useInspirationStore();
+
+// 在组件挂载时加载灵感列表数据
+onMounted(async () => {
+  await inspirationStore.getInspirations();
+});
 const createFormRef = ref<FormInstance>();
 const showCreateDialog = ref(false);
 const creating = ref(false);
@@ -267,6 +274,7 @@ const goToDetail = (id: number) => {
 
 // 添加标题截断函数
 const truncateTitle = (title: string) => {
+  if (!title) return '';
   return title.length > 10 ? title.substring(0, 10) + '...' : title;
 };
 

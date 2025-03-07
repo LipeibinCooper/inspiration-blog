@@ -48,11 +48,19 @@ public class InspirationController extends BaseController {
     public Result<List<Inspiration>> getByUserId(@Parameter(description = "用户ID") @PathVariable Long userId) {
         return success(inspirationService.findByUserId(userId));
     }
-
+    @Operation(summary = "获取灵感列表")
+    @GetMapping
+    public Result<List<Inspiration>> getAll(
+            @Parameter(description = "页码") @RequestParam(required = false) Integer page,
+            @Parameter(description = "每页数量") @RequestParam(required = false) Integer pageSize) {
+        return success(inspirationService.findPublic(page, pageSize));
+    }
     @Operation(summary = "获取公开灵感列表")
     @GetMapping("/public")
-    public Result<List<Inspiration>> getPublic() {
-        return success(inspirationService.findPublic());
+    public Result<List<Inspiration>> getPublic(
+            @Parameter(description = "页码") @RequestParam(required = false) Integer page,
+            @Parameter(description = "每页数量") @RequestParam(required = false) Integer pageSize) {
+        return success(inspirationService.findPublic(page, pageSize));
     }
 
     @Operation(summary = "更新灵感")
@@ -90,4 +98,4 @@ public class InspirationController extends BaseController {
         interactionService.toggleCollection(getCurrentUserId(), id);
         return success();
     }
-} 
+}

@@ -10,8 +10,8 @@ public interface InspirationMapper {
     void insert(Inspiration inspiration);
     Inspiration findById(@Param("id") Long id);
     List<Inspiration> findByUserId(@Param("userId") Long userId);
-    List<Inspiration> findPublic();
+    List<Inspiration> findPublic(@Param("page") Integer page, @Param("pageSize") Integer pageSize);
     void update(Inspiration inspiration);
     void delete(@Param("id") Long id);
     void updateStats(@Param("id") Long id, @Param("likes") Integer likes, @Param("collections") Integer collections);
-} 
+}

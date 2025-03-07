@@ -62,8 +62,11 @@ public class InspirationServiceImpl implements InspirationService {
 
     @Cacheable(value = "public_inspirations")
     @Override
-    public List<Inspiration> findPublic() {
-        return inspirationMapper.findPublic();
+    public List<Inspiration> findPublic(Integer page, Integer pageSize) {
+        // 设置默认分页参数
+        page = page == null ? 0 : page;
+        pageSize = pageSize == null ? 15 : pageSize;
+        return inspirationMapper.findPublic(page * pageSize, pageSize);
     }
 
     @CacheEvict(value = {"inspirations", "user_inspirations", "public_inspirations"}, allEntries = true)
@@ -89,4 +92,4 @@ public class InspirationServiceImpl implements InspirationService {
     public void updateStats(Long id, Integer likes, Integer collections) {
         inspirationMapper.updateStats(id, likes, collections);
     }
-} 
+}

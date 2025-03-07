@@ -38,22 +38,21 @@ export const useInspirationStore = defineStore("inspiration", () => {
   ]);
 
   // 当前用户的灵感笔记（只在左侧列表显示）
-  const myInspirations = computed(() =>
-    inspirations.value.filter(note => note.userId === authStore.userInfo?.id)
-  );
-
+  const myInspirations = computed(() => {
+    if (!authStore.userInfo?.id) return [];
+    return inspirations.value.filter(note => note && note.userId === authStore.userInfo.id);
+  });
   // 所有公开的灵感笔记（包括自己的）
   const recommendedInspirations = computed(() =>
-    inspirations.value.filter(note => note.isPublic)
+    inspirations.value.filter(note => note && note.isPublic === true)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
-
   // 获取灵感列表
   const getInspirations = async () => {
     try {
       const res = await inspirationApi.getInspirations();
-      // 正确访问响应中的 data 字段
-      inspirations.value = res.data.data.map((item: Inspiration) => ({
+      // 正确访问分页数据中的items数组
+      inspirations.value = res.data.data.items.map((item: Inspiration) => ({
         ...item,
         isLiked: false,
         isCollected: false
@@ -75,10 +74,24 @@ export const useInspirationStore = defineStore("inspiration", () => {
       };
       
       const res = await inspirationApi.createInspiration(createDto);
-      // 正确访问响应中的 data 字段
-      inspirations.value.unshift(res.data.data);
+      // 添加必要的字段
+      const newInspiration = {
+        ...res.data.data,
+        isLiked: false,
+        isCollected: false,
+        likes: 0,
+        collections: 0,
+        comments: 0,
+        userId: authStore.userInfo?.id,
+        author: {
+          id: authStore.userInfo?.id,
+          name: authStore.userInfo?.username,
+          avatar: authStore.userInfo?.avatar
+        }
+      };
+      inspirations.value.unshift(newInspiration);
       ElMessage.success('创建成功');
-      return res.data.data;
+      return newInspiration.id;
     } catch (error) {
       console.error('创建灵感失败:', error);
       ElMessage.error('创建失败');
@@ -112,7 +125,31 @@ export const useInspirationStore = defineStore("inspiration", () => {
       throw error;
     }
   };
-
+  // 获取单个灵感详情
+  const fetchInspiration = async (id: number) => {
+    try {
+      const res = await inspirationApi.getInspirationById(id);
+      if (res.data && res.data.code === 0) {
+        return res.data.data;
+      } else {
+        const errorMessage = res.data?.message || '获取灵感详情失败';
+        console.error('获取灵感详情失败:', errorMessage);
+        if (res.data?.code === 404) {
+          ElMessage.error('灵感不存在或已被删除');
+        } else if (res.data?.code === 403) {
+          ElMessage.error('您没有权限查看该灵感');
+        } else {
+          ElMessage.error(errorMessage);
+        }
+        return null;
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || '获取灵感详情失败';
+      console.error('获取灵感详情失败:', errorMessage);
+      ElMessage.error(errorMessage);
+      return null;
+    }
+  };
   // 点赞/取消点赞
   const toggleLike = async (id: number) => {
     try {
@@ -199,26 +236,26 @@ export const useInspirationStore = defineStore("inspiration", () => {
   const getUserComments = (userId: number) => {
     return allComments.value.filter(comment => comment.userId === userId);
   };
-
   return {
     inspirations,
-    myInspirations,
-    recommendedInspirations,
     activeNoteId,
     loading,
     allComments,
+    myInspirations,
+    recommendedInspirations,
     getInspirations,
-    setActiveNoteId,
-    updateInspirationStats,
-    getInspirationComments,
-    getUserComments,
     createInspiration,
     updateInspiration,
     deleteInspiration,
     toggleLike,
     toggleCollection,
     addComment,
-    deleteComment
+    deleteComment,
+    setActiveNoteId,
+    updateInspirationStats,
+    getInspirationComments,
+    getUserComments,
+    fetchInspiration
   };
 }, {
   persist: true

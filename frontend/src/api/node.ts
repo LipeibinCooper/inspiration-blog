@@ -1,4 +1,4 @@
-import request from './request';
+import request from '@/utils/request';
 import type { InspirationNode } from '@/types/inspiration-tree';
 
 export const createNode = (data: Partial<InspirationNode>) => {
@@ -38,4 +38,4 @@ export const deleteNodeImage = (nodeId: number, imageId: number) => {
 
 export const setThumbnail = (nodeId: number, imageId: number) => {
   return request.put(`/nodes/${nodeId}/images/${imageId}/thumbnail`);
-}; 
+};

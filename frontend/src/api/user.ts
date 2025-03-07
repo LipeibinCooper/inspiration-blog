@@ -1,4 +1,4 @@
-import request from './request';
+import request from '@/utils/request';
 import type { UserDTO } from '@/types/inspiration';
 
 export const getUserProfile = (id: number) => {
@@ -21,4 +21,4 @@ export const updateAvatar = (file: File) => {
 
 export const updateBio = (bio: string) => {
   return request.put('/users/bio', { bio });
-}; 
+};
