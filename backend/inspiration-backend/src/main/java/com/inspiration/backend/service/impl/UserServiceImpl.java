@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
         return convertToDTO(user);
     }
 
-    @Cacheable(value = "users", key = "#id")
+//    @Cacheable(value = "users", key = "#id")
     @Override
     public UserDTO findById(Long id) {
         User user = userMapper.findById(id);
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
         return convertToDTO(user);
     }
 
-    @CacheEvict(value = "users", key = "#userId")
+//    @CacheEvict(value = "users", key = "#userId")
     @Override
     @Transactional
     public UserDTO updateProfile(Long userId, UserDTO userDTO) {
@@ -114,14 +114,14 @@ public class UserServiceImpl implements UserService {
         return convertToDTO(user);
     }
 
-    @CacheEvict(value = "users", key = "#userId")
+//    @CacheEvict(value = "users", key = "#userId")
     @Override
     @Transactional
     public void updateAvatar(Long userId, String avatarUrl) {
         userMapper.updateAvatar(userId, avatarUrl);
     }
 
-    @CacheEvict(value = "users", key = "#userId")
+//    @CacheEvict(value = "users", key = "#userId")
     @Override
     @Transactional
     public void updateBio(Long userId, String bio) {

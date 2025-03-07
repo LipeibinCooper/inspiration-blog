@@ -27,14 +27,14 @@ public class InspirationNodeServiceImpl implements InspirationNodeService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
     public InspirationNode create(InspirationNode node) {
         nodeMapper.insert(node);
         return node;
     }
 
     @Override
-    @Cacheable(value = "nodes", key = "#id")
+//    @Cacheable(value = "nodes", key = "#id")
     public InspirationNode findById(Long id) {
         InspirationNode node = nodeMapper.findById(id);
         if (node == null) {
@@ -44,20 +44,20 @@ public class InspirationNodeServiceImpl implements InspirationNodeService {
     }
 
     @Override
-    @Cacheable(value = "inspiration_nodes", key = "#inspirationId")
+//    @Cacheable(value = "inspiration_nodes", key = "#inspirationId")
     public List<InspirationNode> findByInspirationId(Long inspirationId) {
         return nodeMapper.findByInspirationId(inspirationId);
     }
 
     @Override
-    @Cacheable(value = "parent_nodes", key = "#parentId")
+//    @Cacheable(value = "parent_nodes", key = "#parentId")
     public List<InspirationNode> findByParentId(Long parentId) {
         return nodeMapper.findByParentId(parentId);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
     public void update(InspirationNode node) {
         findById(node.getId()); // 检查节点是否存在
         nodeMapper.update(node);
@@ -65,7 +65,7 @@ public class InspirationNodeServiceImpl implements InspirationNodeService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes", "parent_nodes"}, allEntries = true)
     public void delete(Long id) {
         // 先删除节点的所有图片
         imageMapper.deleteByNodeId(id);
@@ -75,7 +75,7 @@ public class InspirationNodeServiceImpl implements InspirationNodeService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
     public void addImage(Long nodeId, String imageUrl, boolean isThumbnail) {
         NodeImage image = new NodeImage();
         image.setNodeId(nodeId);
@@ -86,14 +86,14 @@ public class InspirationNodeServiceImpl implements InspirationNodeService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
     public void removeImage(Long nodeId, Long imageId) {
         imageMapper.delete(imageId);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
+//    @CacheEvict(value = {"nodes", "inspiration_nodes"}, allEntries = true)
     public void setThumbnail(Long nodeId, Long imageId) {
         imageMapper.setThumbnail(nodeId, imageId);
     }
